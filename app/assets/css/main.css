@@ -1,0 +1,79 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme static {
+  --font-sans: -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  /* Apple systemRed (#FF3B30) anchored at 500 */
+  --color-red-50: #FEF2F1;
+  --color-red-100: #FEE3DE;
+  --color-red-200: #FFCBC3;
+  --color-red-300: #FFA598;
+  --color-red-400: #FF6858;
+  --color-red-500: #FF3B30;
+  --color-red-600: #E40109;
+  --color-red-700: #BF0106;
+  --color-red-800: #9D0F0C;
+  --color-red-900: #811B14;
+  --color-red-950: #460A07;
+}
+
+/* Slide the calendar grid on prev/next navigation, driven by the
+   `data-nav-direction` attribute set in `useCalendar` */
+::view-transition-old(calendar),
+::view-transition-new(calendar) {
+  animation-duration: 200ms;
+  animation-timing-function: ease;
+}
+
+html[data-nav-direction='right']::view-transition-old(calendar) {
+  animation-name: calendar-out-start;
+}
+
+html[data-nav-direction='right']::view-transition-new(calendar) {
+  animation-name: calendar-in-end;
+}
+
+html[data-nav-direction='left']::view-transition-old(calendar) {
+  animation-name: calendar-out-end;
+}
+
+html[data-nav-direction='left']::view-transition-new(calendar) {
+  animation-name: calendar-in-start;
+}
+
+@keyframes calendar-out-start {
+  to {
+    opacity: 0;
+    transform: translateX(-2rem);
+  }
+}
+
+@keyframes calendar-in-end {
+  from {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
+}
+
+@keyframes calendar-out-end {
+  to {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
+}
+
+@keyframes calendar-in-start {
+  from {
+    opacity: 0;
+    transform: translateX(-2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
