@@ -14,7 +14,7 @@ const props = defineProps<{
   weekStart: Date
 }>()
 
-const { pathFor, createEvent, visibleMonth } = useCalendar()
+const { pathFor, createEvent } = useCalendar()
 const { eventsForDay, eventsForDays } = useCalendarEvents()
 
 const days = computed(() => Array.from({ length: 7 }, (_, index) => addDays(props.weekStart, index)))
@@ -37,23 +37,6 @@ const bars = computed(() => lanes.value.filter(bar => bar.lane < MAX_LANES).map(
 function covers(bar: AllDayPositionedEvent, index: number): boolean {
   return index >= bar.colStart && index < bar.colStart + bar.colSpan
 }
-
-// The month view overlays its big month label on the week containing the
-// 1st, where it covers the first day number until the month docks into the
-// header and leaves the spot free again
-const monthStart = computed(() => days.value.find(day => day.getDate() === 1))
-
-const labelRides = computed(() => {
-  const start = monthStart.value
-
-  if (!start) {
-    return false
-  }
-
-  return !visibleMonth.value
-    || visibleMonth.value.year !== start.getFullYear()
-    || visibleMonth.value.month !== start.getMonth() + 1
-})
 
 // Timed events fill the slots the day's bars leave free, top first, and the
 // last free slot becomes the "+N more" button when they overflow
@@ -122,10 +105,7 @@ function onCellClick(day: Date) {
       :variant="isToday(day) ? 'solid' : 'ghost'"
       size="xs"
       class="row-start-1 justify-self-end justify-center h-6 min-w-6 m-0.5 px-1 font-semibold rounded-full"
-      :class="[
-        isToday(day) ? 'hover:bg-primary' : 'text-default',
-        labelRides && index === 0 && 'invisible'
-      ]"
+      :class="isToday(day) ? 'hover:bg-primary' : 'text-default'"
       :style="{ gridColumn: index + 1 }"
     />
 
