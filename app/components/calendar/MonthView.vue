@@ -86,8 +86,17 @@ function scrollToMonth(target: CalendarDate, options?: { smooth?: boolean }) {
   })
 }
 
+// All of the below runs on every scroll frame, so the date math each piece
+// repeats for the same month is memoized on a plain month number: building a
+// `CalendarDate` and converting it back to a `Date` are the expensive parts
+function monthKey(month: CalendarDate): number {
+  return month.year * 12 + month.month
+}
+
 // The docked month is the one whose inline label most recently crossed the
 // header: the month of the last day of the top visible week
+const dockedMonths = new Map<number, CalendarDate>()
+
 function dockedMonth(): CalendarDate | null {
   const offset = scrollElement.value?.scrollTop
 
@@ -97,32 +106,55 @@ function dockedMonth(): CalendarDate | null {
 
   const top = Math.min(weeks.length - 1, Math.max(0, Math.floor(offset / ROW_HEIGHT)))
 
-  return toCalendarDate(addDays(weeks[top]!, 6)).set({ day: 1 })
-}
-
-function updateDockedMonth() {
-  const docked = dockedMonth()
-
-  if (docked && (!visibleMonth.value || docked.compare(visibleMonth.value) !== 0)) {
-    visibleMonth.value = docked
+  let month = dockedMonths.get(top)
+  if (!month) {
+    month = toCalendarDate(addDays(weeks[top]!, 6)).set({ day: 1 })
+    dockedMonths.set(top, month)
   }
+
+  return month
 }
 
 // One real label per month, rendered in an overlay spanning the header and
 // the grid: it rides the week row containing the 1st, slides behind the
 // weekday bar, docks at the header title spot and is pushed out through the
 // top by the next month's incoming label, like Apple Calendar
-const labels = shallowRef<{ key: string, month: string, year: string, y: number }[]>([])
+const labels = shallowRef<{ key: number, month: string, year: string, y: number }[]>([])
+
+const labelOffsets = new Map<number, number>()
 
 function labelOffset(month: CalendarDate): number {
-  return indexOf(monthRange(month).start) * ROW_HEIGHT
+  const key = monthKey(month)
+
+  let offset = labelOffsets.get(key)
+  if (offset === undefined) {
+    offset = indexOf(monthRange(month).start) * ROW_HEIGHT
+    labelOffsets.set(key, offset)
+  }
+
+  return offset
 }
 
-function updateLabels() {
-  const element = scrollElement.value
-  const docked = dockedMonth()
+const labelTexts = new Map<number, { month: string, year: string }>()
 
-  if (!element || !docked) {
+function labelText(month: CalendarDate): { month: string, year: string } {
+  const key = monthKey(month)
+
+  let text = labelTexts.get(key)
+  if (!text) {
+    text = { month: formatMonth(toDate(month)), year: String(month.year) }
+    labelTexts.set(key, text)
+  }
+
+  return text
+}
+
+let viewportHeight = 0
+
+function updateLabels(docked: CalendarDate) {
+  const offset = scrollElement.value?.scrollTop
+
+  if (offset == null) {
     return
   }
 
@@ -131,7 +163,7 @@ function updateLabels() {
   while (months.length < 4) {
     const next = months[months.length - 1]!.add({ months: 1 })
 
-    if (labelOffset(next) > element.scrollTop + element.clientHeight) {
+    if (labelOffset(next) > offset + viewportHeight) {
       break
     }
 
@@ -142,7 +174,7 @@ function updateLabels() {
   // so it reaches the docked spot (y 0, the overlay top) exactly as its row
   // hits the top of the grid, where it rests until pushed out
   const positions = months.map((month) => {
-    const distance = labelOffset(month) - element.scrollTop
+    const distance = labelOffset(month) - offset
 
     return Math.max(distance >= GRID_TOP ? GRID_TOP + distance : distance * 2, 0)
   })
@@ -152,22 +184,43 @@ function updateLabels() {
   }
 
   labels.value = months.map((month, index) => ({
-    key: month.toString(),
-    month: new Intl.DateTimeFormat('en-US', { month: 'long' }).format(toDate(month)),
-    year: String(month.year),
+    key: monthKey(month),
+    ...labelText(month),
     y: positions[index]!
   }))
+}
+
+function update() {
+  const docked = dockedMonth()
+
+  if (!docked) {
+    return
+  }
+
+  if (!visibleMonth.value || docked.compare(visibleMonth.value) !== 0) {
+    visibleMonth.value = docked
+  }
+
+  updateLabels(docked)
 }
 
 // `@scroll` on the scroll area only fires when scrolling starts and stops,
 // the native event drives the per-pixel docking and label positions
 useEventListener(scrollElement, 'scroll', () => {
-  updateDockedMonth()
-  updateLabels()
+  update()
   loadVisibleChunks()
 }, { passive: true })
 
-useEventListener('resize', updateLabels)
+// Measured off the scroll path, `clientHeight` would otherwise be read back
+// right after the virtualizer writes the row styles and force a layout
+function measure() {
+  viewportHeight = scrollElement.value?.clientHeight ?? 0
+}
+
+useEventListener('resize', () => {
+  measure()
+  update()
+})
 
 // The scroll area mounts after this component (behind ClientOnly) and its
 // scroll element attaches asynchronously, so keep trying until the initial
@@ -178,11 +231,11 @@ onMounted(async () => {
 
     if (element) {
       scrollElement.value = element
+      measure()
       scrollToMonth(date.value)
 
       if (element.scrollTop > 0) {
-        updateDockedMonth()
-        updateLabels()
+        update()
         loadVisibleChunks()
         return
       }
