@@ -21,6 +21,12 @@ const _useCalendar = () => {
   // sync live while scrolling so the header title follows along
   const visibleMonth = shallowRef<CalendarDate | null>(null)
 
+  // While it scrolls, the month view slides its own copies of the header
+  // title over the grid, the docked one landing right on top of the h1. The
+  // header hands the title over to them for as long as they are up, or the
+  // one leaving the dock and the h1 would drift apart in plain sight
+  const monthLabelsVisible = refAutoReset(false, 600)
+
   const title = computed<RangeTitle>(() => {
     if (view.value === 'month') {
       const focus = visibleMonth.value ?? date.value
@@ -104,6 +110,7 @@ const _useCalendar = () => {
     range,
     title,
     visibleMonth,
+    monthLabelsVisible,
     prevDate,
     nextDate,
     pathFor,

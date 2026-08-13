@@ -27,7 +27,7 @@ definePageMeta({
   }]
 })
 
-const { view, date, title, visibleMonth, prevDate, nextDate, pathFor, setDirection } = useCalendar()
+const { view, date, title, monthLabelsVisible, prevDate, nextDate, pathFor, setDirection } = useCalendar()
 const { online, queue } = useCalendarEvents()
 
 const views = [
@@ -48,12 +48,13 @@ function onViewChange(value: string | number) {
     <!-- Floating over the views so their content scrolls behind the blur, its
       own view transition name keeps it above the sliding grid snapshot (which
       is lifted into the transition overlay, out of reach of the blur) -->
-    <header class="absolute top-0 pt-2 inset-x-0 z-10 flex items-center gap-2 sm:gap-4 h-[calc(var(--ui-header-height)+0.5rem)] px-4 sm:px-6 border-b border-default bg-default/50 backdrop-blur [view-transition-name:header]">
-      <!-- The month view renders its own docking title in an overlay, the
-        h1 only keeps the layout width -->
+    <header class="absolute top-0 pt-2 inset-x-0 z-10 flex items-center gap-2 sm:gap-4 h-[calc(var(--ui-header-height)+0.5rem)] px-4 border-b border-default bg-default/50 backdrop-blur [view-transition-name:header]">
+      <!-- The month view slides its own copy of this title over the top while
+        it scrolls, docking it right here, so this one steps aside for as long
+        as they are up. Both sit at the same spot, the swap does not show -->
       <h1
-        class="flex items-baseline gap-1.5 text-xl sm:text-2xl tracking-tight min-w-0 flex-1"
-        :class="view === 'month' && visibleMonth && 'invisible'"
+        class="flex items-baseline gap-1.5 text-xl sm:text-2xl tracking-tight min-w-0 flex-1 transition-opacity"
+        :class="view === 'month' && monthLabelsVisible ? 'opacity-0 duration-150' : 'opacity-100 duration-300'"
       >
         <span class="font-bold text-highlighted truncate">{{ title.months }}</span>
         <span class="font-normal text-muted hidden sm:inline">{{ title.year }}</span>

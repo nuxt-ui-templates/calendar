@@ -24,7 +24,7 @@ const CHROME_HEIGHT = HEADER_PADDING + HEADER_HEIGHT + WEEKDAY_HEIGHT
 const DOCK_TOP = HEADER_PADDING + (HEADER_HEIGHT - LABEL_HEIGHT) / 2
 const GRID_TOP = CHROME_HEIGHT - DOCK_TOP
 
-const { date, pathFor, visibleMonth } = useCalendar()
+const { date, pathFor, visibleMonth, monthLabelsVisible } = useCalendar()
 const { loadRange } = useCalendarEvents()
 
 const scrollElement = shallowRef<Element | null>(null)
@@ -123,6 +123,14 @@ function dockedMonth(): CalendarDate | null {
 // top by the next month's incoming label, like Apple Calendar
 const labels = shallowRef<{ key: number, month: string, year: string, y: number }[]>([])
 
+// They would sit over the day numbers and the events for good, so they only
+// show while the list moves and fade out once it settles, like Apple
+// Calendar. The header title carries the docked month the rest of the time
+//
+// The list scrolls itself into place on arrival, that one should not wake
+// them the way a real scroll does
+let labelsAwake = false
+
 const labelOffsets = new Map<number, number>()
 
 function labelOffset(month: CalendarDate): number {
@@ -211,6 +219,10 @@ function update() {
 useEventListener(scrollElement, 'scroll', () => {
   update()
   loadVisibleChunks()
+
+  if (labelsAwake) {
+    monthLabelsVisible.value = true
+  }
 }, { passive: true })
 
 // Measured off the scroll path, `clientHeight` would otherwise be read back
@@ -243,6 +255,12 @@ function applyInitialPosition(): boolean {
 
   update()
   loadVisibleChunks()
+
+  // The scroll above lands its event in the next rendering step, this runs
+  // after it
+  requestAnimationFrame(() => {
+    labelsAwake = true
+  })
 
   return true
 }
@@ -310,6 +328,7 @@ watch(() => date.value.toString(), () => {
 
 onUnmounted(() => {
   visibleMonth.value = null
+  monthLabelsVisible.value = false
 })
 </script>
 
@@ -369,14 +388,16 @@ onUnmounted(() => {
     </div>
 
     <!-- Month labels, from the docked header title spot (the overlay top,
-      also its clip line) down over the grid -->
+      also its clip line) down over the grid. Quick to come back once the list
+      moves, slower on the way out -->
     <div
-      class="absolute inset-x-0 top-6 bottom-0 z-40 overflow-hidden pointer-events-none"
+      class="absolute inset-x-0 top-6 bottom-0 z-40 overflow-hidden pointer-events-none transition-opacity"
+      :class="monthLabelsVisible ? 'opacity-100 duration-150' : 'opacity-0 duration-300'"
     >
       <div
         v-for="label in labels"
         :key="label.key"
-        class="absolute top-0 inset-s-4 sm:inset-s-6 flex items-baseline gap-1.5 h-8 text-xl sm:text-2xl tracking-tight will-change-[translate]"
+        class="absolute top-0 inset-s-4 flex items-baseline gap-1.5 h-8 text-xl sm:text-2xl tracking-tight will-change-[translate]"
         :style="{ translate: `0 ${label.y}px` }"
       >
         <span class="font-bold text-highlighted">{{ label.month }}</span>
