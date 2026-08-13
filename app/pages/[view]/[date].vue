@@ -27,7 +27,7 @@ definePageMeta({
   }]
 })
 
-const { view, date, title, visibleMonth, prevDate, nextDate, pathFor, setDirection, createEvent } = useCalendar()
+const { view, date, title, visibleMonth, prevDate, nextDate, pathFor, setDirection } = useCalendar()
 const { online, queue } = useCalendarEvents()
 
 const views = [
@@ -43,10 +43,12 @@ function onViewChange(value: string | number) {
 
 <template>
   <div
-    class="relative flex-1 flex flex-col overflow-hidden lg:peer-data-[variant=floating]:my-2"
+    class="relative flex-1 flex flex-col overflow-hidden"
   >
-    <!-- Floating over the views so their content scrolls behind the blur -->
-    <header class="absolute top-0 inset-x-0 z-10 flex items-center gap-2 sm:gap-4 h-(--ui-header-height) px-4 sm:px-6 border-b border-default bg-default/50 backdrop-blur">
+    <!-- Floating over the views so their content scrolls behind the blur, its
+      own view transition name keeps it above the sliding grid snapshot (which
+      is lifted into the transition overlay, out of reach of the blur) -->
+    <header class="absolute top-0 inset-x-0 z-10 flex items-center gap-2 sm:gap-4 pt-2 h-(--ui-header-height) px-4 sm:px-6 border-b border-default bg-default/50 backdrop-blur [view-transition-name:header]">
       <!-- The month view renders its own docking title in an overlay, the
         h1 only keeps the layout width -->
       <h1
@@ -66,7 +68,7 @@ function onViewChange(value: string | number) {
         class="mx-auto hidden md:flex w-48"
         :ui="{
           indicator: 'bg-default rounded-full',
-          list: 'rounded-full gap-1 bg-white/5',
+          list: 'rounded-full gap-px bg-white/5',
           trigger: 'px-1 data-[state=active]:text-highlighted w-full rounded-full in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-default hover:bg-default/50'
         }"
         @update:model-value="onViewChange"
@@ -93,46 +95,44 @@ function onViewChange(value: string | number) {
           @update:model-value="onViewChange"
         />
 
-        <div class="flex items-center gap-1">
-          <UButton
-            icon="i-lucide-chevron-left"
-            color="neutral"
-            variant="soft"
-            aria-label="Previous"
-            size="sm"
-            prefetch-on="interaction"
-            :to="pathFor(prevDate)"
-            class="rounded-full"
-            @click="setDirection('left')"
-          />
-          <UButton
-            label="Today"
-            color="neutral"
-            variant="soft"
-            size="sm"
-            class="hidden sm:inline-flex rounded-full"
-            :to="pathFor(todayDate())"
-          />
-          <UButton
-            icon="i-lucide-chevron-right"
-            color="neutral"
-            variant="soft"
-            size="sm"
-            aria-label="Next"
-            prefetch-on="interaction"
-            :to="pathFor(nextDate)"
-            class="rounded-full"
-            @click="setDirection('right')"
-          />
-        </div>
-
-        <UButton
-          icon="i-lucide-plus"
-          aria-label="New event"
-          size="sm"
-          class="rounded-full"
-          @click="createEvent()"
-        />
+        <UTheme :props="{ button: { color: 'neutral', variant: 'soft', size: 'sm', class: 'rounded-full' } }">
+          <div class="flex items-center gap-1">
+            <UTooltip
+              text="Previous"
+              :kbds="['arrowleft']"
+            >
+              <UButton
+                icon="i-lucide-chevron-left"
+                aria-label="Previous"
+                prefetch-on="interaction"
+                :to="pathFor(prevDate)"
+                @click="setDirection('left')"
+              />
+            </UTooltip>
+            <UTooltip
+              text="Today"
+              :kbds="['t']"
+            >
+              <UButton
+                label="Today"
+                class="hidden sm:inline-flex rounded-full"
+                :to="pathFor(todayDate())"
+              />
+            </UTooltip>
+            <UTooltip
+              text="Next"
+              :kbds="['arrowright']"
+            >
+              <UButton
+                icon="i-lucide-chevron-right"
+                aria-label="Next"
+                prefetch-on="interaction"
+                :to="pathFor(nextDate)"
+                @click="setDirection('right')"
+              />
+            </UTooltip>
+          </div>
+        </UTheme>
       </div>
     </header>
 
