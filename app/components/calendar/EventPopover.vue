@@ -70,35 +70,34 @@ const items = computed<ContextMenuItem[]>(() => [{
     <div class="contents">
       <UPopover
         :open="open"
+        :ui="{ content: 'flex flex-col gap-1 p-4 w-72' }"
         @update:open="onUpdateOpen"
       >
         <slot />
 
         <template #content>
-          <div class="flex flex-col gap-1 p-4 w-72">
-            <div class="flex items-start justify-between gap-2">
-              <p class="font-semibold text-highlighted">
-                {{ event.title }}
-              </p>
+          <div class="flex items-start justify-between gap-2">
+            <p class="font-semibold text-highlighted">
+              {{ event.title }}
+            </p>
 
-              <div class="flex -mt-1.5 -me-1.5">
-                <UButton
-                  icon="i-lucide-pencil"
-                  color="neutral"
-                  variant="ghost"
-                  size="sm"
-                  aria-label="Edit event"
-                  @click="onEdit"
-                />
-                <UButton
-                  icon="i-lucide-trash-2"
-                  color="neutral"
-                  variant="ghost"
-                  size="sm"
-                  aria-label="Delete event"
-                  @click="onRemove"
-                />
-              </div>
+            <div class="flex -mt-1.5 -me-1.5">
+              <UButton
+                icon="i-lucide-pencil"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                aria-label="Edit event"
+                @click="onEdit"
+              />
+              <UButton
+                icon="i-lucide-trash-2"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                aria-label="Delete event"
+                @click="onRemove"
+              />
             </div>
 
             <p class="text-sm text-muted">

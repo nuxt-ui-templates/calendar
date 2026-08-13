@@ -151,7 +151,10 @@ function onCellClick(day: Date) {
         :style="{ gridColumn: index + 1, gridRow: slot + 2 }"
       />
 
-      <UPopover v-if="more">
+      <UPopover
+        v-if="more"
+        :ui="{ content: 'flex flex-col gap-0.5 p-2 w-64' }"
+      >
         <UButton
           :label="`+${more.events.length - dayEvents.length} more`"
           color="neutral"
@@ -162,18 +165,16 @@ function onCellClick(day: Date) {
         />
 
         <template #content>
-          <div class="flex flex-col gap-0.5 p-2 w-64">
-            <p class="mb-1 text-sm font-semibold text-center text-highlighted">
-              {{ formatFullDate(day) }}
-            </p>
+          <p class="mb-1 text-sm font-semibold text-center text-highlighted">
+            {{ formatFullDate(day) }}
+          </p>
 
-            <CalendarEventChip
-              v-for="event in more.events"
-              :key="event.id"
-              :event="event"
-              show-time
-            />
-          </div>
+          <CalendarEventChip
+            v-for="event in more.events"
+            :key="event.id"
+            :event="event"
+            show-time
+          />
         </template>
       </UPopover>
     </template>
