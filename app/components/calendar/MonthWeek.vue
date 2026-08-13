@@ -158,9 +158,9 @@ function onCellClick(day: Date) {
         <UButton
           :label="`+${more.events.length - dayEvents.length} more`"
           color="neutral"
-          variant="link"
+          variant="ghost"
           size="xs"
-          class="self-start mx-0.5 px-1.5 justify-start hover:text-highlighted"
+          class="self-start mx-0.5 px-1.5 py-0.5 justify-start text-muted font-normal"
           :style="{ gridColumn: index + 1, gridRow: more.slot + 2 }"
         />
 

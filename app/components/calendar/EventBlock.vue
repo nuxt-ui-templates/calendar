@@ -75,7 +75,10 @@ const compact = computed(() => props.positioned.height < 40)
       @pointermove="onPointermove"
       @pointerup="onPointerup"
     >
-      <span class="absolute inset-s-1 inset-y-1 w-1 rounded-full bg-inherit" />
+      <span
+        class="absolute inset-s-1 inset-y-1 w-1 rounded-full"
+        :class="calendarDotClasses[calendar?.color ?? 'primary']"
+      />
 
       <span class="w-full font-bold truncate">{{ event.title }}</span>
       <span

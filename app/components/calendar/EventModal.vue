@@ -109,7 +109,6 @@ function onRemove() {
             v-model="state.title"
             placeholder="Add a title"
             size="lg"
-            variant="soft"
             autofocus
             class="w-full"
           />
