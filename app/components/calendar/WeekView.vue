@@ -45,6 +45,14 @@ const loading = computed(() => status.value === 'pending'
 
 const hours = Array.from({ length: 23 }, (_, index) => index + 1)
 
+// The day header rides over the scroller, so the grid has to pad itself by
+// the header band plus the header's own height. Only the all-day row varies,
+// the day names are the fixed height the month view mirrors (plus its border)
+const DAY_HEADER_HEIGHT = 41
+
+const chrome = useTemplateRef('chrome')
+const { height: chromeHeight } = useElementSize(chrome, { width: 0, height: DAY_HEADER_HEIGHT }, { box: 'border-box' })
+
 const container = useTemplateRef('container')
 
 onMounted(() => {
@@ -53,16 +61,53 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- Starts at the page top with padding, so events scroll behind the
-    blurred floating header -->
-  <UScrollArea
-    ref="container"
-    class="flex-1 isolate [view-transition-name:calendar]"
-  >
-    <!-- Padding on the scroller would not inset the sticky base (that follows
-      the padding box), the margin leaves the header band free so the grid
-      scrolls through it while this pins right below -->
-    <div class="sticky top-[calc(var(--ui-header-height)+0.5rem)] z-20 mt-[calc(var(--ui-header-height)+0.5rem)] bg-default/50 backdrop-blur border-b border-default">
+  <div class="relative flex-1 flex flex-col min-h-0">
+    <!-- Starts at the page top, the grid padding leaves the chrome band free
+      so events scroll behind the blur. `z-0` keeps a dragged event under the
+      floating header the way `isolate` did, without turning this into a
+      backdrop root -->
+    <UScrollArea
+      ref="container"
+      class="flex-1 z-0 [view-transition-name:calendar]"
+    >
+      <div
+        data-week-grid
+        class="grid"
+        :style="{ ...gridStyle, paddingTop: `calc(var(--ui-header-height) + 0.5rem + ${chromeHeight}px)` }"
+      >
+        <div
+          class="relative"
+          :style="{ height: `${24 * HOUR_HEIGHT}px` }"
+        >
+          <span
+            v-for="hour in hours"
+            :key="hour"
+            class="absolute end-2 -translate-y-1/2 text-[11px] text-dimmed tabular-nums"
+            :style="{ top: `${hour * HOUR_HEIGHT}px` }"
+          >
+            {{ formatHour(hour) }}
+          </span>
+        </div>
+
+        <CalendarDayColumn
+          v-for="(day, index) in days"
+          :key="day.getTime()"
+          :day="day"
+          :events="timedEvents[index]!"
+          :loading="loading"
+        />
+      </div>
+    </UScrollArea>
+
+    <!-- Outside the scroller like the month view's weekday bar: sitting
+      inside it, the scroll area (a backdrop root, it carries a view
+      transition name) would be all the blur has to sample. Named for the
+      same reason as the header, so it stays above the grid snapshot during a
+      view transition and keeps blurring it -->
+    <div
+      ref="chrome"
+      class="absolute top-[calc(var(--ui-header-height)+0.5rem)] inset-x-0 z-30 bg-default/50 backdrop-blur border-b border-default [view-transition-name:weekdays]"
+    >
       <div
         class="grid"
         :style="gridStyle"
@@ -104,33 +149,5 @@ onMounted(() => {
         />
       </div>
     </div>
-
-    <div
-      data-week-grid
-      class="grid"
-      :style="gridStyle"
-    >
-      <div
-        class="relative"
-        :style="{ height: `${24 * HOUR_HEIGHT}px` }"
-      >
-        <span
-          v-for="hour in hours"
-          :key="hour"
-          class="absolute end-2 -translate-y-1/2 text-[11px] text-dimmed tabular-nums"
-          :style="{ top: `${hour * HOUR_HEIGHT}px` }"
-        >
-          {{ formatHour(hour) }}
-        </span>
-      </div>
-
-      <CalendarDayColumn
-        v-for="(day, index) in days"
-        :key="day.getTime()"
-        :day="day"
-        :events="timedEvents[index]!"
-        :loading="loading"
-      />
-    </div>
-  </UScrollArea>
+  </div>
 </template>
