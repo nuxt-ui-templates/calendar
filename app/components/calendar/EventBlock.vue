@@ -31,8 +31,10 @@ const style = computed(() => {
     : props.positioned.height
 
   return {
-    top: `${props.positioned.top}px`,
-    height: `${height}px`,
+    // Clears the hour lines it starts and ends on by a pixel, the same gap it
+    // leaves on both inline edges, so the grid shows between blocks
+    top: `${props.positioned.top + 2}px`,
+    height: `${height - 3}px`,
     insetInlineStart: `calc(${props.positioned.left}% + 1px)`,
     width: `calc(${props.positioned.width}% - 2px)`,
     transform: dragging.value && mode.value === 'move'
