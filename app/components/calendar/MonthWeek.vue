@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { addDays, addMinutes, isToday, startOfDay } from 'date-fns'
 
-const MAX_VISIBLE = 3
+// A week is one grid: the day numbers, then a fixed stack of slots each day
+// fills on its own. All-day bars span columns and hold their lane across the
+// days they cover, the other days keep those slots for their own events
+const SLOT_HEIGHT = 22
+const MAX_SLOTS = 4
+// Bars never take the last slot, so a day always has room for an event or
+// the "+N more" button
+const MAX_LANES = MAX_SLOTS - 1
 
 const props = defineProps<{
   weekStart: Date
@@ -13,20 +20,23 @@ const { events } = useCalendarEvents()
 const days = computed(() => Array.from({ length: 7 }, (_, index) => addDays(props.weekStart, index)))
 const weekEnd = computed(() => addDays(props.weekStart, 7))
 
-const bars = computed(() => layoutAllDay(events.value.filter(event => event.allDay), days.value).map(bar => ({
+const gridStyle = {
+  // The last slot takes the leftover height so the column separators reach
+  // the bottom of the row
+  gridTemplateRows: ['auto', ...Array.from({ length: MAX_LANES }, () => `${SLOT_HEIGHT}px`), `minmax(${SLOT_HEIGHT}px, 1fr)`].join(' ')
+}
+
+const lanes = computed(() => layoutAllDay(events.value.filter(event => event.allDay), days.value))
+
+const bars = computed(() => lanes.value.filter(bar => bar.lane < MAX_LANES).map(bar => ({
   ...bar,
   continuesBefore: new Date(bar.event.start) < props.weekStart,
   continuesAfter: new Date(bar.event.end) > weekEnd.value
 })))
 
-// All-day bars span days, so the week is a single grid: the day numbers,
-// then a row per bar lane, then the timed events
-const laneCount = computed(() => bars.value.reduce((count, bar) => Math.max(count, bar.lane + 1), 0))
-
-const gridStyle = computed(() => ({
-  // Listed out rather than `repeat()`, which is invalid for zero lanes
-  gridTemplateRows: ['auto', ...Array.from({ length: laneCount.value }, () => 'auto'), 'minmax(0, 1fr)'].join(' ')
-}))
+function covers(bar: AllDayPositionedEvent, index: number): boolean {
+  return index >= bar.colStart && index < bar.colStart + bar.colSpan
+}
 
 // The month view overlays its big month label on the week containing the
 // 1st, where it covers the first day number until the month docks into the
@@ -45,12 +55,31 @@ const labelRides = computed(() => {
     || visibleMonth.value.month !== start.getMonth() + 1
 })
 
-const cells = computed(() => days.value.map(day => ({
-  day,
-  events: events.value
+// Timed events fill the slots the day's bars leave free, top first, and the
+// last free slot becomes the "+N more" button when they overflow
+const cells = computed(() => days.value.map((day, index) => {
+  const timed = events.value
     .filter(event => !event.allDay && overlapsDay(event, day))
     .sort((a, b) => a.start.localeCompare(b.start))
-})))
+
+  const occupied = new Set(bars.value.filter(bar => covers(bar, index)).map(bar => bar.lane))
+  const free = Array.from({ length: MAX_SLOTS }, (_, slot) => slot).filter(slot => !occupied.has(slot))
+
+  // All-day events past the last lane never render, they only count towards
+  // the overflow
+  const dropped = lanes.value.filter(bar => bar.lane >= MAX_LANES && covers(bar, index)).map(bar => bar.event)
+
+  const overflows = dropped.length > 0 || timed.length > free.length
+  const visible = timed.slice(0, overflows ? free.length - 1 : free.length)
+
+  return {
+    day,
+    events: visible.map((event, slot) => ({ event, slot: free[slot]! })),
+    more: overflows
+      ? { slot: free[visible.length]!, events: [...dropped, ...timed] }
+      : null
+  }
+}))
 
 function label(day: Date): string {
   if (day.getDate() === 1) {
@@ -88,7 +117,7 @@ function onCellClick(day: Date) {
       v-for="({ day }, index) in cells"
       :key="`number-${day.getTime()}`"
       :to="pathFor(toCalendarDate(day), 'day')"
-      class="row-start-1 justify-self-end flex items-center justify-center h-6 min-w-6 mt-0.5 me-0.5 px-1 text-xs font-semibold rounded-full hover:bg-elevated"
+      class="row-start-1 justify-self-end flex items-center justify-center h-6 min-w-6 m-0.5 px-1 text-xs font-semibold rounded-full hover:bg-elevated"
       :class="[
         isToday(day) ? 'bg-primary text-inverted hover:bg-primary' : 'text-default',
         labelRides && index === 0 && 'invisible'
@@ -102,32 +131,31 @@ function onCellClick(day: Date) {
       v-for="{ event, colStart, colSpan, lane, continuesBefore, continuesAfter } in bars"
       :key="event.id"
       :event="event"
-      class="mx-1 mb-1"
+      class="self-start mx-0.5"
       :class="[continuesBefore && 'rounded-s-none', continuesAfter && 'rounded-e-none']"
       :style="{ gridColumn: `${colStart + 1} / span ${colSpan}`, gridRow: lane + 2 }"
     />
 
-    <!-- Transparent to clicks so empty space still creates an event -->
-    <div
-      v-for="({ day, events: dayEvents }, index) in cells"
+    <template
+      v-for="({ day, events: dayEvents, more }, index) in cells"
       :key="`events-${day.getTime()}`"
-      class="flex flex-col gap-0.5 px-1 pb-1 min-w-0 overflow-hidden pointer-events-none"
-      :style="{ gridColumn: index + 1, gridRow: laneCount + 2 }"
     >
       <CalendarEventChip
-        v-for="event in dayEvents.slice(0, MAX_VISIBLE)"
+        v-for="{ event, slot } in dayEvents"
         :key="event.id"
         :event="event"
         show-time
-        class="pointer-events-auto"
+        class="self-start mx-0.5"
+        :style="{ gridColumn: index + 1, gridRow: slot + 2 }"
       />
 
-      <UPopover v-if="dayEvents.length > MAX_VISIBLE">
+      <UPopover v-if="more">
         <button
           type="button"
-          class="px-1.5 text-xs text-start text-muted hover:text-highlighted cursor-pointer pointer-events-auto"
+          class="self-start mx-0.5 px-1.5 text-xs text-start text-muted hover:text-highlighted cursor-pointer"
+          :style="{ gridColumn: index + 1, gridRow: more.slot + 2 }"
         >
-          +{{ dayEvents.length - MAX_VISIBLE }} more
+          +{{ more.events.length - dayEvents.length }} more
         </button>
 
         <template #content>
@@ -137,7 +165,7 @@ function onCellClick(day: Date) {
             </p>
 
             <CalendarEventChip
-              v-for="event in dayEvents"
+              v-for="event in more.events"
               :key="event.id"
               :event="event"
               show-time
@@ -145,6 +173,6 @@ function onCellClick(day: Date) {
           </div>
         </template>
       </UPopover>
-    </div>
+    </template>
   </div>
 </template>
