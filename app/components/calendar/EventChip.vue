@@ -18,7 +18,7 @@ const color = computed(() => calendar.value?.color ?? 'primary')
       v-bind="$attrs"
       type="button"
       data-event
-      class="flex items-center gap-1.5 min-w-0 rounded-md px-1.5 py-0.5 text-xs text-start cursor-pointer transition-colors"
+      class="flex items-center gap-1.5 min-w-0 rounded-md px-1.5 py-0.5 text-xs text-start transition-colors"
       :class="event.allDay ? eventBlockClasses[color] : 'text-default hover:bg-elevated'"
       :aria-label="event.allDay ? event.title : `${event.title}, ${formatTime(new Date(event.start))}`"
       @click.stop
