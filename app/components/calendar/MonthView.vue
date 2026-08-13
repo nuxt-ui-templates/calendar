@@ -270,8 +270,10 @@ onUnmounted(() => {
       </template>
     </ClientOnly>
 
-    <!-- Above the labels so incoming ones slide behind its blur -->
-    <div class="absolute top-(--ui-header-height) inset-x-0 z-30 h-10 grid grid-cols-7 bg-default/50 backdrop-blur border-b border-default">
+    <!-- Above the labels so incoming ones slide behind its blur, named for the
+      same reason as the header: it has to sit above the grid snapshot during a
+      view transition to keep blurring it -->
+    <div class="absolute top-(--ui-header-height) inset-x-0 z-30 h-10 grid grid-cols-7 bg-default/50 backdrop-blur border-b border-default [view-transition-name:weekdays]">
       <span
         v-for="day in 7"
         :key="day"

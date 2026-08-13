@@ -42,6 +42,21 @@ html[data-nav-direction='left']::view-transition-new(calendar) {
   animation-name: calendar-in-start;
 }
 
+/* The blurred chrome rides along in the transition overlay so it keeps
+   blurring the sliding grid instead of being painted over by it, and swaps
+   outright the way it does outside a transition */
+::view-transition-old(header),
+::view-transition-old(weekdays) {
+  animation: none;
+  opacity: 0;
+}
+
+::view-transition-new(header),
+::view-transition-new(weekdays) {
+  animation: none;
+  opacity: 1;
+}
+
 @keyframes calendar-out-start {
   to {
     opacity: 0;
