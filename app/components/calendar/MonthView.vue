@@ -9,15 +9,17 @@ const CHUNK_WEEKS = 6
 // Height of a month label, spacing the sticky stack in the overlay
 const LABEL_HEIGHT = 32
 // The scroll area starts at the page top so events show through the blurred
-// chrome: the header (--ui-header-height, 4rem) plus the weekday bar (h-10,
-// the height of the week view's own day header) the grid rests under via the
-// virtualizer's `paddingStart`
+// chrome: the header (--ui-header-height, 4rem, pushed down by its pt-2) plus
+// the weekday bar (h-10, the height of the week view's own day header) the
+// grid rests under via the virtualizer's `paddingStart`
+const HEADER_PADDING = 8
 const HEADER_HEIGHT = 64
 const WEEKDAY_HEIGHT = 40
-const CHROME_HEIGHT = HEADER_HEIGHT + WEEKDAY_HEIGHT
-// Docked label top within the page (`top-4` on the overlay) and the rest
-// position of the first grid row in overlay coordinates
-const DOCK_TOP = (HEADER_HEIGHT - LABEL_HEIGHT) / 2
+const CHROME_HEIGHT = HEADER_PADDING + HEADER_HEIGHT + WEEKDAY_HEIGHT
+// Docked label top within the page (`top-6` on the overlay, centered in the
+// header band below its padding) and the rest position of the first grid row
+// in overlay coordinates
+const DOCK_TOP = HEADER_PADDING + (HEADER_HEIGHT - LABEL_HEIGHT) / 2
 const GRID_TOP = CHROME_HEIGHT - DOCK_TOP
 
 const { date, pathFor, visibleMonth } = useCalendar()
@@ -273,7 +275,7 @@ onUnmounted(() => {
     <!-- Above the labels so incoming ones slide behind its blur, named for the
       same reason as the header: it has to sit above the grid snapshot during a
       view transition to keep blurring it -->
-    <div class="absolute top-(--ui-header-height) inset-x-0 z-30 h-10 grid grid-cols-7 bg-default/50 backdrop-blur border-b border-default [view-transition-name:weekdays]">
+    <div class="absolute top-[calc(var(--ui-header-height)+0.5rem)] inset-x-0 z-30 h-10 grid grid-cols-7 bg-default/50 backdrop-blur border-b border-default [view-transition-name:weekdays]">
       <span
         v-for="day in 7"
         :key="day"
@@ -287,12 +289,12 @@ onUnmounted(() => {
     <!-- Month labels, from the docked header title spot (the overlay top,
       also its clip line) down over the grid -->
     <div
-      class="absolute inset-x-0 top-4 bottom-0 z-20 overflow-hidden pointer-events-none"
+      class="absolute inset-x-0 top-6 bottom-0 z-20 overflow-hidden pointer-events-none"
     >
       <div
         v-for="label in labels"
         :key="label.key"
-        class="absolute top-0 inset-s-4 sm:inset-s-6 flex items-baseline gap-1.5 h-8 text-xl sm:text-2xl tracking-tight"
+        class="absolute top-0 inset-s-4 sm:inset-s-6 flex items-baseline gap-1.5 h-8 text-xl sm:text-2xl tracking-tight will-change-[translate]"
         :style="{ translate: `0 ${label.y}px` }"
       >
         <span class="font-bold text-highlighted">{{ label.month }}</span>

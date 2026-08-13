@@ -62,7 +62,7 @@ onMounted(() => {
     <!-- Padding on the scroller would not inset the sticky base (that follows
       the padding box), the margin leaves the header band free so the grid
       scrolls through it while this pins right below -->
-    <div class="sticky top-(--ui-header-height) z-20 mt-(--ui-header-height) bg-default/50 backdrop-blur border-b border-default">
+    <div class="sticky top-[calc(var(--ui-header-height)+0.5rem)] z-20 mt-[calc(var(--ui-header-height)+0.5rem)] bg-default/50 backdrop-blur border-b border-default">
       <div
         class="grid"
         :style="gridStyle"

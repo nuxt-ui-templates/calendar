@@ -48,7 +48,7 @@ function onViewChange(value: string | number) {
     <!-- Floating over the views so their content scrolls behind the blur, its
       own view transition name keeps it above the sliding grid snapshot (which
       is lifted into the transition overlay, out of reach of the blur) -->
-    <header class="absolute top-0 inset-x-0 z-10 flex items-center gap-2 sm:gap-4 pt-2 h-(--ui-header-height) px-4 sm:px-6 border-b border-default bg-default/50 backdrop-blur [view-transition-name:header]">
+    <header class="absolute top-0 pt-2 inset-x-0 z-10 flex items-center gap-2 sm:gap-4 h-[calc(var(--ui-header-height)+0.5rem)] px-4 sm:px-6 border-b border-default bg-default/50 backdrop-blur [view-transition-name:header]">
       <!-- The month view renders its own docking title in an overlay, the
         h1 only keeps the layout width -->
       <h1
