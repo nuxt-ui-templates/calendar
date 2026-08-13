@@ -113,19 +113,21 @@ function onCellClick(day: Date) {
       @click="onCellClick(day)"
     />
 
-    <NuxtLink
+    <UButton
       v-for="({ day }, index) in cells"
       :key="`number-${day.getTime()}`"
       :to="pathFor(toCalendarDate(day), 'day')"
-      class="row-start-1 justify-self-end flex items-center justify-center h-6 min-w-6 m-0.5 px-1 text-xs font-semibold rounded-full hover:bg-elevated"
+      :label="label(day)"
+      :color="isToday(day) ? 'primary' : 'neutral'"
+      :variant="isToday(day) ? 'solid' : 'ghost'"
+      size="xs"
+      class="row-start-1 justify-self-end justify-center h-6 min-w-6 m-0.5 px-1 font-semibold rounded-full"
       :class="[
-        isToday(day) ? 'bg-primary text-inverted hover:bg-primary' : 'text-default',
+        isToday(day) ? 'hover:bg-primary' : 'text-default',
         labelRides && index === 0 && 'invisible'
       ]"
       :style="{ gridColumn: index + 1 }"
-    >
-      {{ label(day) }}
-    </NuxtLink>
+    />
 
     <CalendarEventChip
       v-for="{ event, colStart, colSpan, lane, continuesBefore, continuesAfter } in bars"
@@ -150,13 +152,14 @@ function onCellClick(day: Date) {
       />
 
       <UPopover v-if="more">
-        <button
-          type="button"
-          class="self-start mx-0.5 px-1.5 text-xs text-start text-muted hover:text-highlighted cursor-pointer"
+        <UButton
+          :label="`+${more.events.length - dayEvents.length} more`"
+          color="neutral"
+          variant="link"
+          size="xs"
+          class="self-start mx-0.5 px-1.5 justify-start hover:text-highlighted"
           :style="{ gridColumn: index + 1, gridRow: more.slot + 2 }"
-        >
-          +{{ more.events.length - dayEvents.length }} more
-        </button>
+        />
 
         <template #content>
           <div class="flex flex-col gap-0.5 p-2 w-64">
