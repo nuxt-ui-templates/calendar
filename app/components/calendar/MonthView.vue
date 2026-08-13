@@ -8,6 +8,8 @@ const ROW_HEIGHT = 140
 const CHUNK_WEEKS = 6
 // Height of a month label, spacing the sticky stack in the overlay
 const LABEL_HEIGHT = 32
+// How far a riding label sits above the top of its week row
+const LABEL_LIFT = 12
 // The scroll area starts at the page top so events show through the blurred
 // chrome: the header (--ui-header-height, 4rem, pushed down by its pt-2) plus
 // the weekday bar (h-10, the height of the week view's own day header) the
@@ -176,7 +178,7 @@ function updateLabels(docked: CalendarDate) {
   const positions = months.map((month) => {
     const distance = labelOffset(month) - offset
 
-    return Math.max(distance >= GRID_TOP ? GRID_TOP + distance : distance * 2, 0)
+    return Math.max((distance >= GRID_TOP ? GRID_TOP + distance : distance * 2) - LABEL_LIFT, 0)
   })
 
   for (let index = positions.length - 2; index >= 0; index--) {
