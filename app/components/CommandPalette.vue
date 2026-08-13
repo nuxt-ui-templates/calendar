@@ -1,0 +1,77 @@
+<script setup lang="ts">
+import type { CommandPaletteGroup, CommandPaletteItem } from '@nuxt/ui'
+
+const { view, date, pathFor, createEvent, editEvent, isCommandPaletteOpen } = useCalendar()
+const { events, calendars, hiddenCalendars, toggleCalendar } = useCalendarEvents()
+
+const views = [
+  { label: 'Day', value: 'day', icon: 'i-lucide-calendar-range', kbd: 'd' },
+  { label: 'Week', value: 'week', icon: 'i-lucide-calendar-days', kbd: 'w' },
+  { label: 'Month', value: 'month', icon: 'i-lucide-calendar', kbd: 'm' }
+] as const
+
+const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
+  id: 'actions',
+  items: [{
+    label: 'New event',
+    icon: 'i-lucide-plus',
+    kbds: ['n'],
+    onSelect: () => createEvent()
+  }, {
+    label: 'Go to today',
+    icon: 'i-lucide-calendar-check',
+    kbds: ['t'],
+    to: pathFor(todayDate())
+  }]
+}, {
+  id: 'views',
+  label: 'Views',
+  items: views.map(item => ({
+    label: item.label,
+    icon: item.icon,
+    kbds: [item.kbd],
+    active: view.value === item.value,
+    to: pathFor(date.value, item.value)
+  }))
+}, {
+  id: 'calendars',
+  label: 'Calendars',
+  items: calendars.value.map(calendar => ({
+    label: calendar.name,
+    chip: { color: calendar.color },
+    suffix: hiddenCalendars.value.includes(calendar.id) ? 'Show' : 'Hide',
+    onSelect: () => toggleCalendar(calendar.id)
+  }))
+}, {
+  // Only the ranges already fetched, the views load more as you navigate
+  id: 'events',
+  label: 'Events',
+  items: events.value.map(event => ({
+    label: event.title,
+    suffix: formatFullDate(new Date(event.start)),
+    chip: { color: calendars.value.find(calendar => calendar.id === event.calendarId)?.color },
+    onSelect: () => {
+      navigateTo(pathFor(toCalendarDate(new Date(event.start))))
+      editEvent(event)
+    }
+  }))
+}])
+</script>
+
+<template>
+  <UModal
+    v-model:open="isCommandPaletteOpen"
+    :ui="{ content: 'sm:max-w-2xl' }"
+  >
+    <template #content>
+      <UCommandPalette
+        :groups="groups"
+        placeholder="Search events, switch views..."
+        close
+        class="h-96"
+        @update:model-value="isCommandPaletteOpen = false"
+        @update:open="isCommandPaletteOpen = false"
+      />
+    </template>
+  </UModal>
+</template>

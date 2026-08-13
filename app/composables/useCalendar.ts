@@ -59,6 +59,7 @@ const _useCalendar = () => {
   })
 
   const isEventModalOpen = ref(false)
+  const isCommandPaletteOpen = ref(false)
   const editingEvent = ref<CalendarEvent | null>(null)
   const eventDefaults = ref<{ start: Date, end: Date, allDay?: boolean } | null>(null)
 
@@ -75,6 +76,13 @@ const _useCalendar = () => {
   }
 
   defineShortcuts({
+    // Enabled while typing so it also closes the palette from its own input
+    meta_k: {
+      usingInput: true,
+      handler: () => {
+        isCommandPaletteOpen.value = !isCommandPaletteOpen.value
+      }
+    },
     t: () => navigateTo(pathFor(todayDate())),
     d: () => navigateTo(pathFor(date.value, 'day')),
     w: () => navigateTo(pathFor(date.value, 'week')),
@@ -101,6 +109,7 @@ const _useCalendar = () => {
     pathFor,
     setDirection,
     isEventModalOpen,
+    isCommandPaletteOpen,
     editingEvent,
     eventDefaults,
     createEvent,
