@@ -31,7 +31,7 @@ const color = computed(() => calendar.value?.color ?? 'primary')
       <span class="font-medium truncate">{{ event.title }}</span>
       <span
         v-if="showTime && !event.allDay"
-        class="ms-auto shrink-0 text-muted tabular-nums"
+        class="ms-auto shrink-0 text-muted tabular-nums text-[11px]"
       >
         {{ formatTime(new Date(event.start)) }}
       </span>
