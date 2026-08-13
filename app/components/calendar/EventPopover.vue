@@ -99,26 +99,26 @@ const items = computed<ContextMenuItem[]>(() => [{
                 @click="onRemove"
               />
             </div>
-
-            <p class="text-sm text-muted">
-              {{ time }}
-            </p>
-
-            <p
-              v-if="event.description"
-              class="text-sm text-default"
-            >
-              {{ event.description }}
-            </p>
-
-            <UBadge
-              :label="calendar?.name"
-              :color="calendar?.color"
-              variant="subtle"
-              size="sm"
-              class="self-start mt-1"
-            />
           </div>
+
+          <p class="text-sm text-muted">
+            {{ time }}
+          </p>
+
+          <p
+            v-if="event.description"
+            class="text-sm text-default"
+          >
+            {{ event.description }}
+          </p>
+
+          <UBadge
+            :label="calendar?.name"
+            :color="calendar?.color"
+            variant="subtle"
+            size="sm"
+            class="self-start mt-1"
+          />
         </template>
       </UPopover>
     </div>
