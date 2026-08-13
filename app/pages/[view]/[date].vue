@@ -69,7 +69,7 @@ function onViewChange(value: string | number) {
         :ui="{
           indicator: 'bg-default rounded-full',
           list: 'rounded-full gap-px bg-white/5',
-          trigger: 'px-1 data-[state=active]:text-highlighted w-full rounded-full in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-default hover:bg-default/50'
+          trigger: 'px-1 data-[state=active]:text-highlighted w-full rounded-full in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-default in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:rounded-full hover:data-[state=inactive]:not-disabled:bg-default/50'
         }"
         @update:model-value="onViewChange"
       />
