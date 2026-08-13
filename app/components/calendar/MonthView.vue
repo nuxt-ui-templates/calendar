@@ -361,7 +361,7 @@ onUnmounted(() => {
     <!-- Month labels, from the docked header title spot (the overlay top,
       also its clip line) down over the grid -->
     <div
-      class="absolute inset-x-0 top-6 bottom-0 z-20 overflow-hidden pointer-events-none"
+      class="absolute inset-x-0 top-6 bottom-0 z-40 overflow-hidden pointer-events-none"
     >
       <div
         v-for="label in labels"
