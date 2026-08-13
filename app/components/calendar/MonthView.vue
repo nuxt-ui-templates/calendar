@@ -222,28 +222,46 @@ useEventListener('resize', () => {
   update()
 })
 
-// The scroll area mounts after this component (behind ClientOnly) and its
-// scroll element attaches asynchronously, so keep trying until the initial
-// position actually applies (it cannot while the tab is in the background)
-onMounted(async () => {
-  for (let attempt = 0; attempt < 60; attempt++) {
-    const element = getVirtualizer()?.scrollElement
+function applyInitialPosition(): boolean {
+  const element = getVirtualizer()?.scrollElement
 
-    if (element) {
-      scrollElement.value = element
-      measure()
-      scrollToMonth(date.value)
-
-      if (element.scrollTop > 0) {
-        update()
-        loadVisibleChunks()
-        return
-      }
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 50))
+  if (!element) {
+    return false
   }
-})
+
+  scrollElement.value = element
+  measure()
+  scrollToMonth(date.value)
+
+  // A background tab cannot scroll, so the position has to be retried until
+  // it actually applies
+  if (element.scrollTop === 0) {
+    return false
+  }
+
+  update()
+  loadVisibleChunks()
+
+  return true
+}
+
+// The scroll area mounts a tick after this component (it sits behind
+// ClientOnly), so the position lands in the same flush that swaps it in.
+// Waiting on a timer instead let the page settle first, and the view
+// transition snapshotted the list still parked on its very first week
+watch(scrollArea, async () => {
+  if (applyInitialPosition()) {
+    return
+  }
+
+  for (let attempt = 0; attempt < 60; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 50))
+
+    if (applyInitialPosition()) {
+      return
+    }
+  }
+}, { flush: 'post', once: true })
 
 // Scrolling owns the URL: on settle, the docked month replaces the route so
 // the mini calendar and shareable URL follow along
