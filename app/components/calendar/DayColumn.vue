@@ -23,16 +23,18 @@ function onClick(event: MouseEvent) {
 </script>
 
 <template>
+  <!-- The column start is the scroller's snap point for midnight, the hour
+    lines cover the rest of the day -->
   <div
     data-day-column
-    class="relative border-s border-default"
+    class="relative border-s border-default snap-start"
     :style="{ height: `${24 * HOUR_HEIGHT}px` }"
     @click="onClick"
   >
     <div
       v-for="hour in 23"
       :key="hour"
-      class="absolute inset-x-0 border-t border-default pointer-events-none"
+      class="absolute inset-x-0 border-t border-default pointer-events-none snap-start"
       :style="{ top: `${hour * HOUR_HEIGHT}px` }"
     />
 

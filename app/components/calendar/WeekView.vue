@@ -95,9 +95,13 @@ onMounted(async () => {
       so events scroll behind the blur. `z-0` keeps a dragged event under the
       floating header the way `isolate` did, without turning this into a
       backdrop root -->
+    <!-- Snapped on the hour lines, so the grid settles on a whole hour under
+      the chrome instead of cutting one in half. The padding matches the
+      grid's, an hour then lands right below the header -->
     <UScrollArea
       ref="container"
-      class="flex-1 z-0 [view-transition-name:calendar]"
+      :style="{ scrollPaddingTop: chromeOffset }"
+      class="flex-1 z-0 snap-y snap-proximity [view-transition-name:calendar]"
     >
       <div
         data-week-grid

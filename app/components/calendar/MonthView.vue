@@ -314,11 +314,19 @@ onUnmounted(() => {
 <template>
   <div class="relative flex-1 flex flex-col min-h-0">
     <ClientOnly>
+      <!-- Snapped on the week rows so the grid always settles flush under the
+        weekday bar, the way the docked labels assume. `scrollPaddingStart` is
+        the virtualizer's own, it only offsets `scrollToIndex`, the snap
+        positions need the CSS one. Proximity, not mandatory: rows mount and
+        unmount as the list virtualizes and a mandatory scroller re-snaps on
+        every content change -->
       <UScrollArea
         ref="scrollArea"
         :items="weeks"
         :virtualize="{ estimateSize: ROW_HEIGHT, skipMeasurement: true, overscan: 4, paddingStart: CHROME_HEIGHT, scrollPaddingStart: CHROME_HEIGHT }"
-        class="flex-1 [view-transition-name:calendar]"
+        :ui="{ item: 'snap-start' }"
+        :style="{ scrollPaddingTop: `${CHROME_HEIGHT}px` }"
+        class="flex-1 snap-y snap-proximity [view-transition-name:calendar]"
         @scroll="onScroll"
       >
         <template #default="{ item }">
