@@ -9,16 +9,24 @@ export function toTime(date: Date): Time {
   return new Time(date.getHours(), date.getMinutes())
 }
 
+// `getLocalTimeZone` resolves an `Intl.DateTimeFormat` on every call and the
+// month view runs this date math on every scroll frame
+let localTimeZone: string | undefined
+
+function timeZone(): string {
+  return localTimeZone ??= getLocalTimeZone()
+}
+
 export function toDate(date: CalendarDate): Date {
-  return date.toDate(getLocalTimeZone())
+  return date.toDate(timeZone())
 }
 
 export function toDateTime(date: CalendarDate, time: Time): Date {
-  return toCalendarDateTime(date, time).toDate(getLocalTimeZone())
+  return toCalendarDateTime(date, time).toDate(timeZone())
 }
 
 export function todayDate(): CalendarDate {
-  return today(getLocalTimeZone())
+  return today(timeZone())
 }
 
 // Identifies the local calendar day an event falls on, from the date parts so
@@ -58,8 +66,18 @@ export function eachDay({ start, end }: DateRange): Date[] {
   return days
 }
 
+// Constructing a formatter costs far more than formatting with it, and these
+// run once per event chip and per day cell of every rendered week
+const timeFormat = new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+const dayFormat = new Intl.DateTimeFormat('en-US', { weekday: 'short', day: 'numeric' })
+const fullDateFormat = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+const weekdayFormat = new Intl.DateTimeFormat('en-US', { weekday: 'short' })
+const monthFormat = new Intl.DateTimeFormat('en-US', { month: 'long' })
+const shortMonthFormat = new Intl.DateTimeFormat('en-US', { month: 'short' })
+const shortMonthYearFormat = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric' })
+
 export function formatTime(date: Date): string {
-  return new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date)
+  return timeFormat.format(date)
 }
 
 export function formatHour(hour: number): string {
@@ -67,11 +85,23 @@ export function formatHour(hour: number): string {
 }
 
 export function formatDay(date: Date): string {
-  return new Intl.DateTimeFormat('en-US', { weekday: 'short', day: 'numeric' }).format(date)
+  return dayFormat.format(date)
 }
 
 export function formatFullDate(date: Date): string {
-  return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(date)
+  return fullDateFormat.format(date)
+}
+
+export function formatWeekday(date: Date): string {
+  return weekdayFormat.format(date)
+}
+
+export function formatMonth(date: Date): string {
+  return monthFormat.format(date)
+}
+
+export function formatShortMonth(date: Date): string {
+  return shortMonthFormat.format(date)
 }
 
 export interface RangeTitle {
@@ -84,11 +114,11 @@ export function formatRangeTitle({ start, end }: DateRange): RangeTitle {
   const year = String(last.getFullYear())
 
   if (start.getMonth() === last.getMonth()) {
-    return { months: new Intl.DateTimeFormat('en-US', { month: 'long' }).format(start), year }
+    return { months: monthFormat.format(start), year }
   }
 
-  const startMonth = new Intl.DateTimeFormat('en-US', { month: 'short', ...(start.getFullYear() !== last.getFullYear() && { year: 'numeric' }) }).format(start)
-  const endMonth = new Intl.DateTimeFormat('en-US', { month: 'short' }).format(last)
+  const startMonth = (start.getFullYear() !== last.getFullYear() ? shortMonthYearFormat : shortMonthFormat).format(start)
+  const endMonth = shortMonthFormat.format(last)
 
   return { months: `${startMonth} – ${endMonth}`, year }
 }

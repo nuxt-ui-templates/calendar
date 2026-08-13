@@ -75,7 +75,7 @@ onMounted(() => {
           class="flex items-center justify-center gap-1 py-2 text-sm border-s border-default"
         >
           <span class="text-muted">
-            {{ new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(day) }}
+            {{ formatWeekday(day) }}
           </span>
           <span
             class="flex items-center justify-center size-6 font-semibold rounded-full"

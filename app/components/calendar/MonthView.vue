@@ -29,6 +29,7 @@ const scrollElement = shallowRef<Element | null>(null)
 
 const firstWeek = addWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), -WEEKS_AROUND)
 const weeks = Array.from({ length: WEEKS_AROUND * 2 + 1 }, (_, index) => addWeeks(firstWeek, index))
+const weekdays = Array.from({ length: 7 }, (_, index) => formatWeekday(addDays(firstWeek, index)))
 
 function indexOf(day: Date): number {
   return Math.min(weeks.length - 1, Math.max(0, differenceInCalendarWeeks(day, firstWeek, { weekStartsOn: 1 })))
@@ -277,12 +278,12 @@ onUnmounted(() => {
       view transition to keep blurring it -->
     <div class="absolute top-[calc(var(--ui-header-height)+0.5rem)] inset-x-0 z-30 h-10 grid grid-cols-7 bg-default/50 backdrop-blur border-b border-default [view-transition-name:weekdays]">
       <span
-        v-for="day in 7"
-        :key="day"
+        v-for="(weekday, index) in weekdays"
+        :key="weekday"
         class="flex items-center justify-end pe-2 text-sm text-muted border-default"
-        :class="day !== 1 && 'border-s'"
+        :class="index !== 0 && 'border-s'"
       >
-        {{ new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(addDays(firstWeek, day - 1)) }}
+        {{ weekday }}
       </span>
     </div>
 

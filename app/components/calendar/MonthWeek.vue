@@ -83,7 +83,7 @@ const cells = computed(() => days.value.map((day, index) => {
 
 function label(day: Date): string {
   if (day.getDate() === 1) {
-    return `${new Intl.DateTimeFormat('en-US', { month: 'short' }).format(day)} 1`
+    return `${formatShortMonth(day)} 1`
   }
 
   return String(day.getDate())
