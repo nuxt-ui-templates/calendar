@@ -1,12 +1,20 @@
-import { CalendarDate, getLocalTimeZone, today } from '@internationalized/date'
+import { CalendarDate, getLocalTimeZone, Time, toCalendarDateTime, today } from '@internationalized/date'
 import { addDays, startOfMonth, startOfWeek } from 'date-fns'
 
 export function toCalendarDate(date: Date): CalendarDate {
   return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
 }
 
+export function toTime(date: Date): Time {
+  return new Time(date.getHours(), date.getMinutes())
+}
+
 export function toDate(date: CalendarDate): Date {
   return date.toDate(getLocalTimeZone())
+}
+
+export function toDateTime(date: CalendarDate, time: Time): Date {
+  return toCalendarDateTime(date, time).toDate(getLocalTimeZone())
 }
 
 export function todayDate(): CalendarDate {

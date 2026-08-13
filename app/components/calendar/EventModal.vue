@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import { addDays, addMinutes, startOfDay } from 'date-fns'
+import { CalendarDate, Time } from '@internationalized/date'
 import type { FormSubmitEvent } from '@nuxt/ui'
 
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100),
   calendarId: z.string().min(1, 'Calendar is required'),
-  date: z.string().min(1, 'Date is required'),
-  startTime: z.string(),
-  endTime: z.string(),
+  date: z.instanceof(CalendarDate, { error: 'Date is required' }),
+  startTime: z.instanceof(Time, { error: 'Start is required' }),
+  endTime: z.instanceof(Time, { error: 'End is required' }),
   allDay: z.boolean(),
   description: z.string().max(1000).optional()
-}).refine(form => form.allDay || form.endTime > form.startTime, {
+}).refine(form => form.allDay || form.endTime.compare(form.startTime) > 0, {
   message: 'End must be after start',
   path: ['endTime']
 })
@@ -21,14 +22,6 @@ type FormSchema = z.output<typeof formSchema>
 const { isEventModalOpen, editingEvent, eventDefaults } = useCalendar()
 const { calendars, addEvent, updateEvent, removeEvent } = useCalendarEvents()
 
-function toDateInput(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
-
-function toTimeInput(date: Date): string {
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-}
-
 function initialState(): FormSchema {
   const event = editingEvent.value
   const start = event ? new Date(event.start) : eventDefaults.value?.start ?? addMinutes(startOfDay(new Date()), new Date().getHours() * 60 + 60)
@@ -37,21 +30,26 @@ function initialState(): FormSchema {
   return {
     title: event?.title ?? '',
     calendarId: event?.calendarId ?? calendars.value[0]?.id ?? 'work',
-    date: toDateInput(start),
-    startTime: toTimeInput(start),
-    endTime: toTimeInput(end),
+    date: toCalendarDate(start),
+    startTime: toTime(start),
+    endTime: toTime(end),
     allDay: event?.allDay ?? eventDefaults.value?.allDay ?? false,
     description: event?.description ?? ''
   }
 }
 
-const state = ref<FormSchema>(initialState())
+// Shallow so the `CalendarDate` and `Time` instances are not wrapped in a
+// reactive proxy, which would break their private fields
+const state = shallowReactive<FormSchema>(initialState())
 
 watch(isEventModalOpen, (open) => {
   if (open) {
-    state.value = initialState()
+    Object.assign(state, initialState())
   }
 })
+
+// The picker hangs off the date text rather than its own trailing button
+const inputDate = useTemplateRef('inputDate')
 
 const calendarItems = computed(() => calendars.value.map(calendar => ({
   label: calendar.name,
@@ -60,9 +58,9 @@ const calendarItems = computed(() => calendars.value.map(calendar => ({
 })))
 
 function onSubmit(form: FormSubmitEvent<FormSchema>) {
-  const day = new Date(`${form.data.date}T00:00`)
-  const start = form.data.allDay ? day : new Date(`${form.data.date}T${form.data.startTime}`)
-  const end = form.data.allDay ? addDays(day, 1) : new Date(`${form.data.date}T${form.data.endTime}`)
+  const day = toDate(form.data.date)
+  const start = form.data.allDay ? day : toDateTime(form.data.date, form.data.startTime)
+  const end = form.data.allDay ? addDays(day, 1) : toDateTime(form.data.date, form.data.endTime)
 
   const event: CalendarEvent = {
     id: editingEvent.value?.id ?? crypto.randomUUID(),
@@ -122,10 +120,31 @@ function onRemove() {
             label="Date"
             name="date"
           >
-            <UInput
+            <UInputDate
+              ref="inputDate"
               v-model="state.date"
-              type="date"
-            />
+            >
+              <template #trailing>
+                <UPopover :reference="inputDate?.inputsRef[3]?.$el">
+                  <UButton
+                    color="neutral"
+                    variant="link"
+                    size="sm"
+                    icon="i-lucide-calendar"
+                    aria-label="Select a date"
+                    class="px-0"
+                  />
+
+                  <template #content>
+                    <UCalendar
+                      v-model="state.date"
+                      :week-starts-on="1"
+                      class="p-2"
+                    />
+                  </template>
+                </UPopover>
+              </template>
+            </UInputDate>
           </UFormField>
 
           <template v-if="!state.allDay">
@@ -133,9 +152,9 @@ function onRemove() {
               label="Start"
               name="startTime"
             >
-              <UInput
+              <UInputTime
                 v-model="state.startTime"
-                type="time"
+                :hour-cycle="24"
               />
             </UFormField>
 
@@ -143,9 +162,9 @@ function onRemove() {
               label="End"
               name="endTime"
             >
-              <UInput
+              <UInputTime
                 v-model="state.endTime"
-                type="time"
+                :hour-cycle="24"
               />
             </UFormField>
           </template>
