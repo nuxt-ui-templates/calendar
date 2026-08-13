@@ -41,6 +41,9 @@ export function layoutDay(events: CalendarEvent[], day: Date): PositionedEvent[]
       return { event, startMin, endMin }
     })
     .filter(item => item.endMin > item.startMin)
+    // Events shorter than the minimum are drawn past their real end, so the
+    // packing runs on what is painted or they would overlap on screen
+    .map(item => ({ ...item, endMin: Math.max(item.endMin, item.startMin + MIN_EVENT_MINUTES) }))
     .sort((a, b) => a.startMin - b.startMin || b.endMin - a.endMin)
 
   const positioned: PositionedEvent[] = []
@@ -64,7 +67,7 @@ export function layoutDay(events: CalendarEvent[], day: Date): PositionedEvent[]
       positioned.push({
         event: item.event,
         top: item.startMin * PX_PER_MINUTE,
-        height: Math.max(item.endMin - item.startMin, MIN_EVENT_MINUTES) * PX_PER_MINUTE,
+        height: (item.endMin - item.startMin) * PX_PER_MINUTE,
         left: assigned[index]! / columns.length * 100,
         width: 100 / columns.length
       })
