@@ -3,7 +3,7 @@ import { breakpointsTailwind } from '@vueuse/core'
 import { differenceInCalendarDays, isToday } from 'date-fns'
 
 const { date, range } = useCalendar()
-const { events } = useCalendarEvents()
+const { events, status } = useCalendarEvents()
 
 const isSmallScreen = useBreakpoints(breakpointsTailwind).smaller('lg')
 // Only narrow after mount: the server always renders the full week, so the
@@ -37,25 +37,32 @@ const allDayEvents = computed(() => layoutAllDay(
   days.value
 ))
 
+// A pending fetch keeps serving the previous range, so the placeholders wait
+// until the visible days have nothing of their own to show
+const loading = computed(() => status.value === 'pending'
+  && !allDayEvents.value.length
+  && timedEvents.value.every(day => !day.length))
+
 const hours = Array.from({ length: 23 }, (_, index) => index + 1)
 
 const container = useTemplateRef('container')
 
 onMounted(() => {
-  container.value?.scrollTo({ top: 7 * HOUR_HEIGHT })
+  container.value?.$el.scrollTo({ top: 7 * HOUR_HEIGHT })
 })
 </script>
 
 <template>
   <!-- Starts at the page top with padding, so events scroll behind the
     blurred floating header -->
-  <div
+  <UScrollArea
     ref="container"
-    class="flex-1 overflow-y-auto isolate pt-(--ui-header-height) [view-transition-name:calendar]"
+    class="flex-1 isolate [view-transition-name:calendar]"
   >
-    <!-- The container's top padding insets the sticky base, `top-0` pins
-      this right below the floating header -->
-    <div class="sticky top-0 z-20 bg-default/50 backdrop-blur border-b border-default">
+    <!-- Padding on the scroller would not inset the sticky base (that follows
+      the padding box), the margin leaves the header band free so the grid
+      scrolls through it while this pins right below -->
+    <div class="sticky top-(--ui-header-height) z-20 mt-(--ui-header-height) bg-default/50 backdrop-blur border-b border-default">
       <div
         class="grid"
         :style="gridStyle"
@@ -65,7 +72,7 @@ onMounted(() => {
         <div
           v-for="day in days"
           :key="day.getTime()"
-          class="flex items-center justify-center gap-1.5 py-2 text-sm border-s border-default"
+          class="flex items-center justify-center gap-1 py-2 text-sm border-s border-default"
         >
           <span class="text-muted">
             {{ new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(day) }}
@@ -122,7 +129,8 @@ onMounted(() => {
         :key="day.getTime()"
         :day="day"
         :events="timedEvents[index]!"
+        :loading="loading"
       />
     </div>
-  </div>
+  </UScrollArea>
 </template>

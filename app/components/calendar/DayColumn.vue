@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { addMinutes, isToday, startOfDay } from 'date-fns'
 
+// Placeholder blocks shown while a range loads, as [start hour, hours]
+const SKELETONS = [[9, 1.5], [13, 1], [16, 2]] as const
+
 const props = defineProps<{
   day: Date
   events: PositionedEvent[]
+  loading?: boolean
 }>()
 
 const { createEvent } = useCalendar()
@@ -30,6 +34,13 @@ function onClick(event: MouseEvent) {
       :key="hour"
       class="absolute inset-x-0 border-t border-default pointer-events-none"
       :style="{ top: `${hour * HOUR_HEIGHT}px` }"
+    />
+
+    <USkeleton
+      v-for="[hour, hours] in loading ? SKELETONS : []"
+      :key="hour"
+      class="absolute inset-x-1 rounded-md"
+      :style="{ top: `${hour * HOUR_HEIGHT}px`, height: `${hours * HOUR_HEIGHT}px` }"
     />
 
     <CalendarEventBlock
