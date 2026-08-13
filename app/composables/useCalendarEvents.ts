@@ -1,3 +1,5 @@
+import { addDays, startOfDay } from 'date-fns'
+
 interface EventOverlay {
   created: Record<string, CalendarEvent>
   updated: Record<string, CalendarEvent>
@@ -121,6 +123,57 @@ const _useCalendarEvents = () => {
     return [...merged.values()].filter(event => !hiddenCalendars.value.includes(event.calendarId))
   })
 
+  // Every view renders a handful of days and used to scan the whole pool once
+  // per day, which the month view makes expensive: it streams in a chunk per
+  // six weeks scrolled and never drops one, so the pool keeps growing while
+  // each new week row mounting rescans it. Bucketing once per change turns
+  // those scans into seven lookups
+  const eventsByDay = computed(() => {
+    const buckets = new Map<string, CalendarEvent[]>()
+
+    for (const event of events.value) {
+      const end = new Date(event.end)
+
+      // Ranges are [start, end), so an event ending at midnight stops on the
+      // previous day and one with no duration still covers its own
+      let day = startOfDay(new Date(event.start))
+      do {
+        const key = dayKey(day)
+        const bucket = buckets.get(key)
+
+        if (bucket) {
+          bucket.push(event)
+        } else {
+          buckets.set(key, [event])
+        }
+
+        day = addDays(day, 1)
+      } while (day < end)
+    }
+
+    return buckets
+  })
+
+  function eventsForDay(day: Date): CalendarEvent[] {
+    return eventsByDay.value.get(dayKey(day)) ?? []
+  }
+
+  // Multi-day events land in every bucket they cover, so a span of days has to
+  // deduplicate them
+  function eventsForDays(days: Date[]): CalendarEvent[] {
+    const seen = new Set<string>()
+
+    return days.flatMap(day => eventsForDay(day).filter((event) => {
+      if (seen.has(event.id)) {
+        return false
+      }
+
+      seen.add(event.id)
+
+      return true
+    }))
+  }
+
   // While offline, mutations stay in the overlay and queue for replay: the
   // upsert PATCH and idempotent DELETE make replaying in order safe
   const online = useOnline()
@@ -199,6 +252,8 @@ const _useCalendarEvents = () => {
     hiddenCalendars,
     toggleCalendar,
     events,
+    eventsForDay,
+    eventsForDays,
     status,
     online,
     queue,

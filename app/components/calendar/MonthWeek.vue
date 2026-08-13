@@ -15,7 +15,7 @@ const props = defineProps<{
 }>()
 
 const { pathFor, createEvent, visibleMonth } = useCalendar()
-const { events } = useCalendarEvents()
+const { eventsForDay, eventsForDays } = useCalendarEvents()
 
 const days = computed(() => Array.from({ length: 7 }, (_, index) => addDays(props.weekStart, index)))
 const weekEnd = computed(() => addDays(props.weekStart, 7))
@@ -26,7 +26,7 @@ const gridStyle = {
   gridTemplateRows: ['auto', ...Array.from({ length: MAX_LANES }, () => `${SLOT_HEIGHT}px`), `minmax(${SLOT_HEIGHT}px, 1fr)`].join(' ')
 }
 
-const lanes = computed(() => layoutAllDay(events.value.filter(event => event.allDay), days.value))
+const lanes = computed(() => layoutAllDay(eventsForDays(days.value).filter(event => event.allDay), days.value))
 
 const bars = computed(() => lanes.value.filter(bar => bar.lane < MAX_LANES).map(bar => ({
   ...bar,
@@ -58,8 +58,8 @@ const labelRides = computed(() => {
 // Timed events fill the slots the day's bars leave free, top first, and the
 // last free slot becomes the "+N more" button when they overflow
 const cells = computed(() => days.value.map((day, index) => {
-  const timed = events.value
-    .filter(event => !event.allDay && overlapsDay(event, day))
+  const timed = eventsForDay(day)
+    .filter(event => !event.allDay)
     .sort((a, b) => a.start.localeCompare(b.start))
 
   const occupied = new Set(bars.value.filter(bar => covers(bar, index)).map(bar => bar.lane))

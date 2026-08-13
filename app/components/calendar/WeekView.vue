@@ -3,7 +3,7 @@ import { breakpointsTailwind } from '@vueuse/core'
 import { differenceInCalendarDays, isToday } from 'date-fns'
 
 const { date, range } = useCalendar()
-const { events, status } = useCalendarEvents()
+const { eventsForDay, eventsForDays, status } = useCalendarEvents()
 
 const isSmallScreen = useBreakpoints(breakpointsTailwind).smaller('lg')
 // Only narrow after mount: the server always renders the full week, so the
@@ -28,12 +28,12 @@ const gridStyle = computed(() => ({
 }))
 
 const timedEvents = computed(() => days.value.map(day => layoutDay(
-  events.value.filter(event => !event.allDay && overlapsDay(event, day)),
+  eventsForDay(day).filter(event => !event.allDay),
   day
 )))
 
 const allDayEvents = computed(() => layoutAllDay(
-  events.value.filter(event => event.allDay),
+  eventsForDays(days.value).filter(event => event.allDay),
   days.value
 ))
 

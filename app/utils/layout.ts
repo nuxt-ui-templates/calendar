@@ -20,13 +20,6 @@ export interface AllDayPositionedEvent {
   lane: number
 }
 
-export function overlapsDay(event: CalendarEvent, day: Date): boolean {
-  const start = startOfDay(day).getTime()
-  const end = start + 24 * 60 * 60 * 1000
-
-  return new Date(event.start).getTime() < end && new Date(event.end).getTime() > start
-}
-
 // Cluster + column packing, the same approach Google Calendar uses: events
 // that transitively overlap form a cluster, each cluster splits into the
 // minimum number of columns

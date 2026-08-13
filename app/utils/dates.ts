@@ -21,6 +21,12 @@ export function todayDate(): CalendarDate {
   return today(getLocalTimeZone())
 }
 
+// Identifies the local calendar day an event falls on, from the date parts so
+// it stays correct across DST and costs less than a formatter
+export function dayKey(date: Date): string {
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+}
+
 // Ranges are [start, end) so the end boundary is the first excluded instant
 export function weekRange(date: CalendarDate, days = 7): DateRange {
   const start = days === 7 ? startOfWeek(toDate(date), { weekStartsOn: 1 }) : toDate(date)
