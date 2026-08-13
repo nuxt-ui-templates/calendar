@@ -49,14 +49,43 @@ const hours = Array.from({ length: 23 }, (_, index) => index + 1)
 // the header band plus the header's own height. Only the all-day row varies,
 // the day names are the fixed height the month view mirrors (plus its border)
 const DAY_HEADER_HEIGHT = 41
+// A lane is an `h-5` chip, its 4px top margin and the 4px below it, either
+// the gap to the next lane or the row's own bottom padding. The row adds its
+// top border on top of that
+const ALL_DAY_LANE_HEIGHT = 28
+const ALL_DAY_ROW_BORDER = 1
 
 const chrome = useTemplateRef('chrome')
-const { height: chromeHeight } = useElementSize(chrome, { width: 0, height: DAY_HEADER_HEIGHT }, { box: 'border-box' })
+const { height: measuredChrome } = useElementSize(chrome, { width: 0, height: 0 }, { box: 'border-box' })
+
+const allDayLanes = computed(() => allDayEvents.value.reduce((lanes, { lane }) => Math.max(lanes, lane + 1), 0))
+
+// The observer only reports a render after the first paint, so a reload of a
+// week with all-day events would push the grid down by the row it had not
+// measured yet. The lanes are known upfront, they hold the padding until then
+const chromeHeight = computed(() => measuredChrome.value
+  || DAY_HEADER_HEIGHT + (allDayLanes.value ? allDayLanes.value * ALL_DAY_LANE_HEIGHT + ALL_DAY_ROW_BORDER : 0))
+
+const chromeOffset = computed(() => `calc(var(--ui-header-height) + 0.5rem + ${chromeHeight.value}px)`)
+
+// The day opens at 7am. A server render has no scroll position to hand over,
+// so it pulls the grid up by that much instead and the client swaps the pull
+// for a real scroll on the frame it hydrates. Scrolling on mount alone made
+// a reload paint the small hours first and then jump. The clamp mirrors what
+// the browser does to the scroll offset when the viewport (the scroller is
+// the full `h-svh` layout height) already fits the whole day
+const START_OFFSET = 7 * HOUR_HEIGHT
+
+const startPull = computed(() => `calc(-1 * clamp(0px, ${START_OFFSET}px, ${24 * HOUR_HEIGHT}px + ${chromeOffset.value} - 100svh))`)
 
 const container = useTemplateRef('container')
 
-onMounted(() => {
-  container.value?.$el.scrollTo({ top: 7 * HOUR_HEIGHT })
+onMounted(async () => {
+  // `mounted` drops the pull in this flush, the scroll has to land in the
+  // same one or the grid paints back at midnight for a frame
+  await nextTick()
+
+  container.value?.$el.scrollTo({ top: START_OFFSET })
 })
 </script>
 
@@ -73,7 +102,7 @@ onMounted(() => {
       <div
         data-week-grid
         class="grid"
-        :style="{ ...gridStyle, paddingTop: `calc(var(--ui-header-height) + 0.5rem + ${chromeHeight}px)` }"
+        :style="{ ...gridStyle, paddingTop: chromeOffset, marginTop: mounted ? undefined : startPull }"
       >
         <div
           class="relative"
@@ -144,7 +173,7 @@ onMounted(() => {
           v-for="{ event, colStart, colSpan, lane } in allDayEvents"
           :key="event.id"
           :event="event"
-          class="mx-1 mt-1"
+          class="mx-1 mt-1 h-5"
           :style="{ gridColumn: `${colStart + 2} / span ${colSpan}`, gridRow: lane + 1 }"
         />
       </div>
