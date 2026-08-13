@@ -68,7 +68,7 @@ function onViewChange(value: string | number) {
         class="mx-auto hidden md:flex w-48"
         :ui="{
           indicator: 'bg-default rounded-full',
-          list: 'rounded-full gap-px bg-white/5',
+          list: 'rounded-full gap-px',
           trigger: 'px-1 data-[state=active]:text-highlighted w-full rounded-full in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-default in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:rounded-full hover:data-[state=inactive]:not-disabled:bg-default/50'
         }"
         @update:model-value="onViewChange"
@@ -96,7 +96,7 @@ function onViewChange(value: string | number) {
         />
 
         <UTheme :props="{ button: { color: 'neutral', variant: 'soft', size: 'sm', class: 'rounded-full' } }">
-          <div class="flex items-center gap-1">
+          <div class="flex items-center gap-0.5">
             <UTooltip
               text="Previous"
               :kbds="['arrowleft']"
