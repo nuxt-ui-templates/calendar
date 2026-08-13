@@ -1,3 +1,3 @@
-export default defineEventHandler((): Calendar[] => {
-  return useStore().calendars
+export default defineEventHandler((event): Calendar[] => {
+  return useStore(event).calendars
 })

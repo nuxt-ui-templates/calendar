@@ -1,3 +1,4 @@
+import type { H3Event } from 'h3'
 import { addDays, addMinutes, addWeeks, set, startOfWeek } from 'date-fns'
 
 interface Store {
@@ -135,10 +136,71 @@ function eachDayOfWeek(start: Date): Date[] {
   return Array.from({ length: 7 }, (_, index) => addDays(start, index))
 }
 
-let store: Store | undefined
+// The demo is public and unauthenticated, so a single shared store would let
+// anyone edit the calendar everyone else sees. Each visitor gets their own copy
+// instead, forked from the seed the first time they change something.
+const SESSION_COOKIE = 'calendar-session'
 
-export function useStore(): Store {
-  store ??= { calendars, events: seed() }
+// Sessions live in memory, so the ceiling only has to hold for one instance
+const MAX_SESSIONS = 100
 
-  return store
+const sessions = new Map<string, Store>()
+
+let base: Store | undefined
+
+// Everyone starts from the same calendar, so visitors who only ever read it
+// share this one and cost nothing
+function useBaseStore(): Store {
+  base ??= { calendars, events: seed() }
+
+  return base
+}
+
+// Re-inserting keeps the Map ordered least to most recently used, so eviction
+// always drops the coldest session
+function touch(id: string, session: Store): Store {
+  sessions.delete(id)
+  sessions.set(id, session)
+
+  return session
+}
+
+export function useStore(event: H3Event): Store {
+  const id = getCookie(event, SESSION_COOKIE)
+  const session = id && sessions.get(id)
+
+  return session ? touch(id, session) : useBaseStore()
+}
+
+// Used by the write handlers: forking on the first mutation keeps the cookie
+// off read requests, where the server rendered response could not return it
+export function useEditableStore(event: H3Event): Store {
+  const cookie = getCookie(event, SESSION_COOKIE)
+  const session = cookie && sessions.get(cookie)
+
+  if (session) {
+    return touch(cookie, session)
+  }
+
+  const id = cookie || crypto.randomUUID()
+
+  setCookie(event, SESSION_COOKIE, id, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: !import.meta.dev,
+    path: '/',
+    maxAge: 60 * 60 * 24
+  })
+
+  // Events are replaced rather than mutated, so the fork copies the lookup
+  // and not the events themselves
+  const forked: Store = { calendars, events: new Map(useBaseStore().events) }
+
+  sessions.set(id, forked)
+
+  if (sessions.size > MAX_SESSIONS) {
+    sessions.delete(sessions.keys().next().value!)
+  }
+
+  return forked
 }

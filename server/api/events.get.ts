@@ -10,7 +10,7 @@ export default defineEventHandler(async (event): Promise<CalendarEvent[]> => {
   const start = new Date(query.start).getTime()
   const end = new Date(query.end).getTime()
 
-  return [...useStore().events.values()].filter((event) => {
-    return new Date(event.start).getTime() < end && new Date(event.end).getTime() > start
+  return [...useStore(event).events.values()].filter((calendarEvent) => {
+    return new Date(calendarEvent.start).getTime() < end && new Date(calendarEvent.end).getTime() > start
   })
 })
