@@ -2,9 +2,8 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-sans: -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
 
-  /* Apple systemRed (#FF3B30) anchored at 500 */
   --color-red-50: #FEF2F1;
   --color-red-100: #FEE3DE;
   --color-red-200: #FFCBC3;

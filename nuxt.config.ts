@@ -25,5 +25,12 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
+  },
+
+  // `--font-sans` leads with `-apple-system` so Apple platforms use SF Pro, and
+  // @nuxt/fonts only resolves the first family in a stack, so Inter is declared
+  // here to get its `@font-face` emitted for everyone else
+  fonts: {
+    families: [{ name: 'Inter', provider: 'google', global: true }]
   }
 })
