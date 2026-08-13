@@ -9,10 +9,11 @@ const CHUNK_WEEKS = 6
 // Height of a month label, spacing the sticky stack in the overlay
 const LABEL_HEIGHT = 32
 // The scroll area starts at the page top so events show through the blurred
-// chrome: the header (--ui-header-height, 4rem) plus the weekday bar (h-7)
-// the grid rests under via the virtualizer's `paddingStart`
+// chrome: the header (--ui-header-height, 4rem) plus the weekday bar (h-10,
+// the height of the week view's own day header) the grid rests under via the
+// virtualizer's `paddingStart`
 const HEADER_HEIGHT = 64
-const WEEKDAY_HEIGHT = 28
+const WEEKDAY_HEIGHT = 40
 const CHROME_HEIGHT = HEADER_HEIGHT + WEEKDAY_HEIGHT
 // Docked label top within the page (`top-4` on the overlay) and the rest
 // position of the first grid row in overlay coordinates
@@ -270,11 +271,12 @@ onUnmounted(() => {
     </ClientOnly>
 
     <!-- Above the labels so incoming ones slide behind its blur -->
-    <div class="absolute top-(--ui-header-height) inset-x-0 z-30 h-7 grid grid-cols-7 items-center bg-default/50 backdrop-blur border-b border-default">
+    <div class="absolute top-(--ui-header-height) inset-x-0 z-30 h-10 grid grid-cols-7 bg-default/50 backdrop-blur border-b border-default">
       <span
         v-for="day in 7"
         :key="day"
-        class="pe-2 text-end text-xs text-muted uppercase"
+        class="flex items-center justify-end pe-2 text-sm text-muted border-default"
+        :class="day !== 1 && 'border-s'"
       >
         {{ new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(addDays(firstWeek, day - 1)) }}
       </span>
