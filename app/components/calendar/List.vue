@@ -1,21 +1,33 @@
 <script setup lang="ts">
 const { calendars, hiddenCalendars, toggleCalendar } = useCalendarEvents()
+
+const items = computed(() => [
+  { label: 'Calendars', type: 'label' as const },
+  ...calendars.value.map(calendar => ({
+    label: calendar.name,
+    color: calendar.color,
+    value: calendar.id,
+    slot: 'calendar' as const,
+    // Rendered as a `div` since the link defaults to a `button`, which cannot
+    // contain the checkbox
+    as: 'div'
+  }))
+])
 </script>
 
 <template>
-  <div class="flex flex-col gap-1.5">
-    <p class="px-1.5 text-xs font-semibold text-muted">
-      Calendars
-    </p>
-
-    <UCheckbox
-      v-for="calendar in calendars"
-      :key="calendar.id"
-      :label="calendar.name"
-      :color="calendar.color"
-      :model-value="!hiddenCalendars.includes(calendar.id)"
-      class="px-1.5 py-0.5"
-      @update:model-value="toggleCalendar(calendar.id)"
-    />
-  </div>
+  <UNavigationMenu
+    :items="items"
+    orientation="vertical"
+  >
+    <template #calendar="{ item }">
+      <UCheckbox
+        :label="item.label"
+        :color="item.color"
+        :model-value="!hiddenCalendars.includes(item.value!)"
+        class="w-full"
+        @update:model-value="toggleCalendar(item.value!)"
+      />
+    </template>
+  </UNavigationMenu>
 </template>
