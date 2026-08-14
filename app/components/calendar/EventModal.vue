@@ -120,7 +120,9 @@ function onRemove() {
           />
         </UFormField>
 
-        <div class="flex items-center gap-4">
+        <!-- The three of them only fit on one line from `sm` up, below that
+          the times drop under the date rather than the end time alone -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
           <UFormField
             label="Date"
             name="date"
@@ -154,7 +156,10 @@ function onRemove() {
             </UInputDate>
           </UFormField>
 
-          <template v-if="!state.allDay">
+          <div
+            v-if="!state.allDay"
+            class="flex items-center gap-4"
+          >
             <UFormField
               label="Start"
               name="startTime"
@@ -178,7 +183,7 @@ function onRemove() {
                 variant="subtle"
               />
             </UFormField>
-          </template>
+          </div>
         </div>
 
         <USwitch
