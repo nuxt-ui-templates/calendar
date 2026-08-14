@@ -1,9 +1,17 @@
 import type { H3Event } from 'h3'
 import { addDays, addMinutes, addWeeks, set, startOfWeek } from 'date-fns'
 
+// What the handlers need from an event collection, so a session can stand in
+// for the seeded Map with a copy-on-write view
+interface EventSource {
+  set(id: string, event: CalendarEvent): void
+  delete(id: string): void
+  values(): Iterable<CalendarEvent>
+}
+
 interface Store {
   calendars: Calendar[]
-  events: Map<string, CalendarEvent>
+  events: EventSource
 }
 
 const calendars: Calendar[] = [
@@ -22,8 +30,8 @@ function timed(id: string, calendarId: string, title: string, start: Date, durat
     calendarId,
     title,
     description,
-    start: start.toISOString(),
-    end: addMinutes(start, durationMinutes).toISOString()
+    start: toLocalISO(start),
+    end: toLocalISO(addMinutes(start, durationMinutes))
   }
 }
 
@@ -33,14 +41,11 @@ function allDay(id: string, calendarId: string, title: string, start: Date, days
     calendarId,
     title,
     description,
-    start: at(start, 0).toISOString(),
-    end: at(addDays(start, days), 0).toISOString(),
+    start: toLocalISO(at(start, 0)),
+    end: toLocalISO(at(addDays(start, days), 0)),
     allDay: true
   }
 }
-
-// A year either way so scrolling in any direction stays populated
-const WEEKS_AROUND = 52
 
 // Stable pseudo-random in [0, 1) for a given week and event, so the same
 // calendar is generated on every boot and no two weeks look alike
@@ -146,14 +151,55 @@ const MAX_SESSIONS = 100
 
 const sessions = new Map<string, Store>()
 
+let seeded: Map<string, CalendarEvent> | undefined
+
+// Seeded once per instance on purpose: the ids are relative to the week of
+// the seed, so re-seeding a live instance would silently move their meaning
+// under clients that already cached them. Serverless instances recycle often
+// enough to keep "today" fresh
+function seedEvents(): Map<string, CalendarEvent> {
+  return seeded ??= seed()
+}
+
 let base: Store | undefined
 
 // Everyone starts from the same calendar, so visitors who only ever read it
 // share this one and cost nothing
 function useBaseStore(): Store {
-  base ??= { calendars, events: seed() }
+  return base ??= { calendars, events: seedEvents() }
+}
 
-  return base
+// Copy-on-write fork: a session records only its own changes and reads
+// through to the shared seed, so a visitor who edits one event costs one
+// entry instead of a copy of the whole store. `null` marks a deletion
+function forkEvents(base: Map<string, CalendarEvent>): EventSource {
+  const changes = new Map<string, CalendarEvent | null>()
+
+  return {
+    set(id, event) {
+      changes.set(id, event)
+    },
+    delete(id) {
+      changes.set(id, null)
+    },
+    * values() {
+      for (const [id, event] of base) {
+        const change = changes.get(id)
+
+        if (change) {
+          yield change
+        } else if (!changes.has(id)) {
+          yield event
+        }
+      }
+
+      for (const [id, change] of changes) {
+        if (change && !base.has(id)) {
+          yield change
+        }
+      }
+    }
+  }
 }
 
 // Re-inserting keeps the Map ordered least to most recently used, so eviction
@@ -192,9 +238,7 @@ export function useEditableStore(event: H3Event): Store {
     maxAge: 60 * 60 * 24
   })
 
-  // Events are replaced rather than mutated, so the fork copies the lookup
-  // and not the events themselves
-  const forked: Store = { calendars, events: new Map(useBaseStore().events) }
+  const forked: Store = { calendars, events: forkEvents(seedEvents()) }
 
   sessions.set(id, forked)
 
