@@ -1,15 +1,12 @@
-// Everything glass is cut from the same two pieces. `glass-material` carries
-// the backdrop filter and nothing else, so the fill, ring and shadow can stay
-// stock Tailwind and let tailwind-merge resolve them against whatever each
-// component already ships
-const material = 'glass-material bg-(--glass-bg)'
-const frame = 'ring-black/8 dark:ring-white/10 shadow-2xl'
-
-// A surface that floats over body
-const content = `${material} ${frame}`
-// A control that sits on chrome: the same material, framed by a hairline
-// rather than lifted off the surface it belongs to
+// The hairline that frames a piece of glass. On its own it goes on a control,
+// which sits on the chrome it belongs to rather than lifting off it
 const ring = 'ring ring-black/8 dark:ring-white/10'
+// A surface that floats over body. `glass-material` carries the backdrop filter
+// and nothing else, so the fill, ring and shadow stay stock Tailwind and let
+// tailwind-merge resolve them against whatever each component already ships
+const content = `glass-material bg-(--glass-bg) ${ring} shadow-2xl`
+// The same hairline in border form, for a section ruled off inside a surface
+const border = 'border-black/8 dark:border-white/10'
 // Rules inside glass. `divide-default` is an opaque border colour, which reads
 // as painted on once there is a backdrop showing through behind it
 const divide = 'divide-black/8 dark:divide-white/8'
@@ -78,7 +75,7 @@ export default defineAppConfig({
     sidebar: {
       slots: {
         body: 'p-2 gap-2',
-        footer: 'p-2 lg:border-t border-black/8 dark:border-white/10'
+        footer: ['p-2 lg:border-t', border]
       },
       variants: {
         variant: {
@@ -89,12 +86,12 @@ export default defineAppConfig({
       }
     },
     // The sidebar menu below `lg`, cut from the same glass as the floating
-    // sidebar it stands in for. The ring and the shadow are restated without
-    // the theme's `sm:` so an inset sheet is framed at phone widths too
+    // sidebar it stands in for. The shadow is restated at `sm:` to land after
+    // the theme's own. The ring comes from the surface, at every width
     slideover: {
       slots: {
         overlay,
-        content: [content, divide, 'ring sm:shadow-2xl']
+        content: [content, divide, 'sm:shadow-2xl']
       }
     },
     tabs: {
@@ -108,7 +105,7 @@ export default defineAppConfig({
         // `bg-default` surface, reads as raised out of it rather than sunk in
         variant: {
           pill: {
-            list: ['rounded-full gap-0.5 bg-default', ring],
+            list: ['rounded-full gap-0.5 bg-elevated dark:bg-default', ring],
             indicator: 'rounded-full'
           }
         }
@@ -120,8 +117,16 @@ export default defineAppConfig({
         color: 'neutral',
         variant: 'pill',
         class: {
-          indicator: 'bg-white dark:bg-elevated',
-          trigger: 'data-[state=active]:text-highlighted in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-elevated in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:rounded-full hover:data-[state=inactive]:not-disabled:bg-(--glass-bg)'
+          indicator: 'bg-default dark:bg-elevated',
+          trigger: [
+            'data-[state=active]:text-highlighted',
+            'hover:data-[state=inactive]:not-disabled:bg-(--glass-bg)',
+            // The theme paints the active pill on `before` whenever the list
+            // renders without an indicator, so it gets the same surface and
+            // the same radius as the one the indicator draws
+            'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-elevated',
+            'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:rounded-full'
+          ]
         }
       }]
     }
