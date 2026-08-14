@@ -47,7 +47,7 @@
 }
 
 .dark {
-  --glass-bg: rgb(28 28 30 / 0.66);
+  --glass-bg: rgb(28 28 30 / 0.55);
   --glass-blur: 28px;
   --glass-saturate: 150%;
   --glass-brightness: 110%;
