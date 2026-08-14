@@ -6,7 +6,9 @@ import type { CalendarDate } from '@internationalized/date'
 const WEEKS_AROUND = 260
 const ROW_HEIGHT = 140
 const CHUNK_WEEKS = 6
-// Height of a month label, spacing the sticky stack in the overlay
+// Height of a month label, spacing the sticky stack in the overlay. It is the
+// `text-2xl` line box, so below `sm` the smaller title floats inside it and
+// the label centers its own text to stay on the docked one
 const LABEL_HEIGHT = 32
 // How far a riding label sits above the top of its week row
 const LABEL_LIFT = 12
@@ -16,12 +18,16 @@ const LABEL_LIFT = 12
 // grid rests under via the virtualizer's `paddingStart`
 const HEADER_PADDING = 8
 const HEADER_HEIGHT = 64
+// Its bottom border is inside that height, so the band the title centers in
+// is a pixel shorter than the header is
+const HEADER_BORDER = 1
 const WEEKDAY_HEIGHT = 40
 const CHROME_HEIGHT = HEADER_PADDING + HEADER_HEIGHT + WEEKDAY_HEIGHT
-// Docked label top within the page (`top-6` on the overlay, centered in the
-// header band below its padding) and the rest position of the first grid row
-// in overlay coordinates
-const DOCK_TOP = HEADER_PADDING + (HEADER_HEIGHT - LABEL_HEIGHT) / 2
+// Docked label top within the page, on the center of the header title, and
+// the rest position of the first grid row in overlay coordinates. The overlay
+// is pinned to it, the two have to land on the same line for the handover
+// between a docked label and the title to hold still
+const DOCK_TOP = HEADER_PADDING + (HEADER_HEIGHT - HEADER_BORDER - LABEL_HEIGHT) / 2
 const GRID_TOP = CHROME_HEIGHT - DOCK_TOP
 
 const { date, pathFor, visibleMonth, monthLabelsVisible } = useCalendar()
@@ -389,19 +395,24 @@ onUnmounted(() => {
 
     <!-- Month labels, from the docked header title spot (the overlay top,
       also its clip line) down over the grid. Quick to come back once the list
-      moves, slower on the way out -->
+      moves, slower on the way out. Docked, one lands on the header title, so
+      it starts where the title does: past the menu button and its gap below
+      `lg`, on the header padding above -->
     <div
-      class="absolute inset-x-0 top-6 bottom-0 z-40 overflow-hidden pointer-events-none transition-opacity"
+      class="absolute inset-x-0 bottom-0 z-40 overflow-hidden pointer-events-none transition-opacity"
       :class="monthLabelsVisible ? 'opacity-100 duration-150' : 'opacity-0 duration-300'"
+      :style="{ top: `${DOCK_TOP}px` }"
     >
       <div
         v-for="label in labels"
         :key="label.key"
-        class="absolute top-0 inset-s-4 flex items-baseline gap-1.5 h-8 text-xl sm:text-2xl tracking-tight will-change-[translate]"
+        class="absolute top-0 inset-s-13 lg:inset-s-4 flex items-center gap-1.5 h-8 text-xl sm:text-2xl tracking-tight will-change-[translate]"
         :style="{ translate: `0 ${label.y}px` }"
       >
         <span class="font-bold text-highlighted">{{ label.month }}</span>
-        <span class="font-normal text-muted">{{ label.year }}</span>
+        <!-- Dropped where the header title drops it, or the docked one would
+          hand a year over to a title that has none -->
+        <span class="font-normal text-muted hidden sm:inline">{{ label.year }}</span>
       </div>
     </div>
   </div>
