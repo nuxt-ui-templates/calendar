@@ -99,7 +99,7 @@ function onViewChange(value: string | number) {
         color="neutral"
         size="sm"
         class="mx-auto w-20 sm:w-42 lg:w-48"
-        :ui="{ trigger: 'p-0.5 lg:p-1.5' }"
+        :ui="{ trigger: 'p-1 lg:p-1.5' }"
         @update:model-value="onViewChange"
       >
         <template #default="{ item }">

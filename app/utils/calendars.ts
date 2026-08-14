@@ -8,6 +8,18 @@ export const eventBlockClasses: Record<Calendar['color'], string> = {
   error: 'bg-error/15 hover:bg-error/25 text-error border-error'
 }
 
+// The phone month cell has no room for a dot and a time, so below `lg` a
+// timed chip becomes Apple's tinted pill: the calendar color carried by the
+// fill, only the title inside
+export const eventChipCompactClasses: Record<Calendar['color'], string> = {
+  primary: 'max-lg:bg-primary/15 max-lg:text-primary',
+  secondary: 'max-lg:bg-secondary/15 max-lg:text-secondary',
+  info: 'max-lg:bg-info/15 max-lg:text-info',
+  success: 'max-lg:bg-success/15 max-lg:text-success',
+  warning: 'max-lg:bg-warning/15 max-lg:text-warning',
+  error: 'max-lg:bg-error/15 max-lg:text-error'
+}
+
 export const calendarDotClasses: Record<Calendar['color'], string> = {
   primary: 'bg-primary',
   secondary: 'bg-secondary',

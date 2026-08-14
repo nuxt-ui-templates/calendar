@@ -146,12 +146,15 @@ function onCellClick(day: Date) {
       v-for="({ day, events: dayEvents, more }, index) in cells"
       :key="`events-${day.getTime()}`"
     >
+      <!-- A phone cell has no room for a title and a time, and the title is
+        what identifies the event, so the time gives way. The popover keeps
+        its own times, it is wide enough -->
       <CalendarEventChip
         v-for="{ event, slot } in dayEvents"
         :key="event.id"
         :event="event"
         show-time
-        class="self-start mx-0.5"
+        class="self-start mx-0.5 max-lg:**:data-time:hidden"
         :style="{ gridColumn: index + 1, gridRow: slot + 2 }"
       />
 
@@ -160,13 +163,15 @@ function onCellClick(day: Date) {
         :ui="{ content: 'flex flex-col gap-0.5 p-2 w-64' }"
       >
         <UButton
-          :label="`+${more.hidden} more`"
           color="neutral"
           variant="ghost"
           size="xs"
           class="self-start mx-0.5 px-1.5 py-0.5 justify-start text-muted font-normal"
           :style="{ gridColumn: index + 1, gridRow: more.slot + 2 }"
-        />
+        >
+          <span class="lg:hidden">+{{ more.hidden }}</span>
+          <span class="hidden lg:inline">+{{ more.hidden }} more</span>
+        </UButton>
 
         <template #content>
           <p class="mb-1 text-sm font-semibold text-center text-highlighted">
