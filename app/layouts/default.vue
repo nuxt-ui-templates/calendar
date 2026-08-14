@@ -18,7 +18,7 @@ const { createEvent, isCommandPaletteOpen } = useCalendar()
         <NuxtLink
           to="/"
           aria-label="Home"
-          class="flex items-end gap-0.5 text-highlighted"
+          class="flex items-end gap-0.5 text-highlighted outline-primary/25 focus-visible:outline-3 rounded-md"
         >
           <AppLogo class="h-8 w-auto shrink-0" />
           <span class="text-xl font-bold text-highlighted">Calendar</span>
