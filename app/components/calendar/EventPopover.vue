@@ -81,24 +81,20 @@ const items = computed<ContextMenuItem[]>(() => [{
               {{ event.title }}
             </p>
 
-            <div class="flex -mt-1.5 -me-1.5">
-              <UButton
-                icon="i-lucide-pencil"
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                aria-label="Edit event"
-                @click="onEdit"
-              />
-              <UButton
-                icon="i-lucide-trash-2"
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                aria-label="Delete event"
-                @click="onRemove"
-              />
-            </div>
+            <UTheme :props="{ button: { color: 'neutral', variant: 'ghost', size: 'sm' } }">
+              <div class="flex -mt-1.5 -me-1.5">
+                <UButton
+                  icon="i-lucide-pencil"
+                  aria-label="Edit event"
+                  @click="onEdit"
+                />
+                <UButton
+                  icon="i-lucide-trash-2"
+                  aria-label="Delete event"
+                  @click="onRemove"
+                />
+              </div>
+            </UTheme>
           </div>
 
           <p class="text-sm text-muted">

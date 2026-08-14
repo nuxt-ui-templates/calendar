@@ -61,6 +61,8 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
 <template>
   <UModal
     v-model:open="isCommandPaletteOpen"
+    :transition="false"
+    :unmount-on-close="false"
     :ui="{ content: 'sm:max-w-2xl' }"
   >
     <template #content>

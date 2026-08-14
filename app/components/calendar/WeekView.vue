@@ -139,7 +139,7 @@ onMounted(async () => {
       view transition and keeps blurring it -->
     <div
       ref="chrome"
-      class="absolute top-[calc(var(--ui-header-height)+0.5rem)] inset-x-0 z-30 bg-default/50 backdrop-blur border-b border-default [view-transition-name:weekdays]"
+      class="absolute top-[calc(var(--ui-header-height)+0.5rem)] inset-x-0 z-30 glass-material bg-(--glass-bg) border-b border-default [view-transition-name:weekdays]"
     >
       <div
         class="grid"

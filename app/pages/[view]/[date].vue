@@ -43,12 +43,20 @@ function onViewChange(value: string | number) {
 
 <template>
   <div
-    class="relative flex-1 flex flex-col overflow-hidden"
+    class="relative flex-1 flex flex-col overflow-hidden -z-1"
   >
     <!-- Floating over the views so their content scrolls behind the blur, its
       own view transition name keeps it above the sliding grid snapshot (which
       is lifted into the transition overlay, out of reach of the blur) -->
-    <header class="absolute top-0 pt-2 inset-x-0 z-10 flex items-center gap-2 sm:gap-4 h-[calc(var(--ui-header-height)+0.5rem)] px-4 border-b border-default bg-default/50 backdrop-blur [view-transition-name:header]">
+    <header class="absolute top-0 pt-2 inset-x-0 z-10 flex items-center gap-2 sm:gap-4 h-[calc(var(--ui-header-height)+0.5rem)] px-4 border-b border-default glass-material [view-transition-name:header]">
+      <!-- The tint rides its own layer so it can run solid at the top and
+        dissolve towards the grid instead of ending on a line. Solid up there
+        because rows scrolled past the viewport stop being sampled by the
+        filter, and anything less than opaque shows their remains clipping
+        mid-band. The blur itself stays uniform: masking it away anywhere
+        just uncovers sharp content -->
+      <div class="pointer-events-none absolute inset-0 -z-10 bg-(--glass-bg) bg-linear-to-b from-default from-40% to-transparent" />
+
       <!-- The month view slides its own copy of this title over the top while
         it scrolls, docking it right here, so this one steps aside for as long
         as they are up. Both sit at the same spot, the swap does not show -->
@@ -67,11 +75,6 @@ function onViewChange(value: string | number) {
         color="neutral"
         size="sm"
         class="mx-auto hidden md:flex w-48"
-        :ui="{
-          indicator: 'bg-default rounded-full',
-          list: 'rounded-full gap-px',
-          trigger: 'px-1 data-[state=active]:text-highlighted w-full rounded-full in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-default in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:rounded-full hover:data-[state=inactive]:not-disabled:bg-default/50'
-        }"
         @update:model-value="onViewChange"
       />
 
@@ -97,7 +100,7 @@ function onViewChange(value: string | number) {
         />
 
         <UTheme :props="{ button: { color: 'neutral', variant: 'soft', size: 'sm', class: 'rounded-full' } }">
-          <div class="flex items-center gap-0.5">
+          <div class="flex items-center gap-1">
             <UTooltip
               text="Previous"
               :kbds="['arrowleft']"

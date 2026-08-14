@@ -7,12 +7,7 @@ const { createEvent, isCommandPaletteOpen } = useCalendar()
     <USidebar
       variant="floating"
       collapsible="none"
-      class="p-2"
-      :ui="{
-        inner: 'bg-white/50 dark:bg-neutral-950/25 backdrop-blur-xl backdrop-saturate-200 rounded-xl divide-none',
-        body: 'p-2 pt-0 gap-2',
-        footer: 'p-2 border-t border-default'
-      }"
+      class="p-2 pe-px"
     >
       <template #header>
         <NuxtLink
@@ -24,38 +19,34 @@ const { createEvent, isCommandPaletteOpen } = useCalendar()
           <span class="text-xl font-bold text-highlighted">Calendar</span>
         </NuxtLink>
 
-        <div class="ms-auto flex items-center gap-1.5">
-          <UTooltip
-            text="Search"
-            :kbds="['meta', 'k']"
-          >
-            <UButton
-              icon="i-lucide-search"
-              color="neutral"
-              variant="outline"
-              aria-label="Search"
-              size="sm"
-              class="rounded-full"
-              @click="isCommandPaletteOpen = true"
-            />
-          </UTooltip>
+        <UTheme :props="{ button: { size: 'sm', class: 'rounded-full' } }">
+          <div class="ms-auto flex items-center gap-1.5">
+            <UTooltip
+              text="Search"
+              :kbds="['meta', 'k']"
+            >
+              <UButton
+                icon="i-lucide-search"
+                color="neutral"
+                variant="outline"
+                aria-label="Search"
+                @click="isCommandPaletteOpen = true"
+              />
+            </UTooltip>
 
-          <UTooltip
-            text="New event"
-            :kbds="['n']"
-          >
-            <UButton
-              icon="i-lucide-plus"
-              aria-label="New event"
-              size="sm"
-              class="rounded-full"
-              @click="createEvent()"
-            />
-          </UTooltip>
-        </div>
+            <UTooltip
+              text="New event"
+              :kbds="['n']"
+            >
+              <UButton
+                icon="i-lucide-plus"
+                aria-label="New event"
+                @click="createEvent()"
+              />
+            </UTooltip>
+          </div>
+        </UTheme>
       </template>
-
-      <div class="pointer-events-none absolute -inset-e-32 -top-32 -z-10 size-124 rounded-full bg-primary/2.5 blur-3xl" />
 
       <CalendarList />
 

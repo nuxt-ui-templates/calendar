@@ -41,7 +41,7 @@ function onClick(event: MouseEvent) {
     <USkeleton
       v-for="[hour, hours] in loading ? SKELETONS : []"
       :key="hour"
-      class="absolute inset-x-1 rounded-md"
+      class="absolute inset-x-1 rounded-xs"
       :style="{ top: `${hour * HOUR_HEIGHT}px`, height: `${hours * HOUR_HEIGHT}px` }"
     />
 

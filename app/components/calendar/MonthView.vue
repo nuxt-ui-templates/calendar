@@ -376,7 +376,7 @@ onUnmounted(() => {
     <!-- Under the labels so an incoming one slides over its blur, named for the
       same reason as the header: it has to sit above the grid snapshot during a
       view transition to keep blurring it -->
-    <div class="absolute top-[calc(var(--ui-header-height)+0.5rem)] inset-x-0 z-30 h-10 grid grid-cols-7 bg-default/50 backdrop-blur border-b border-default [view-transition-name:weekdays]">
+    <div class="absolute top-[calc(var(--ui-header-height)+0.5rem)] inset-x-0 z-30 h-10 grid grid-cols-7 glass-material bg-(--glass-bg) border-b border-default [view-transition-name:weekdays]">
       <span
         v-for="(weekday, index) in weekdays"
         :key="weekday"

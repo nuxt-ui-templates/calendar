@@ -63,7 +63,7 @@ const compact = computed(() => props.positioned.height < 40)
     <button
       type="button"
       data-event
-      class="absolute flex flex-col items-start overflow-hidden rounded-md px-3 py-1 text-xs text-start transition-colors select-none touch-none"
+      class="absolute flex flex-col items-start overflow-hidden rounded-xs px-3 py-1 text-xs text-start transition-colors select-none touch-none"
       :class="[
         eventBlockClasses[calendar?.color ?? 'primary'],
         dragging ? 'z-20 ring-2 ring-inverted/25 shadow-lg' : 'z-5'

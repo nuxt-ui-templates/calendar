@@ -93,6 +93,7 @@ function onRemove() {
 <template>
   <UModal
     v-model:open="isEventModalOpen"
+    :transition="false"
     :title="editingEvent ? 'Edit event' : 'New event'"
     :ui="{ footer: 'justify-between' }"
   >
@@ -101,14 +102,19 @@ function onRemove() {
         id="event-form"
         :schema="formSchema"
         :state="state"
+        :validate-on="[]"
         class="flex flex-col gap-4"
         @submit="onSubmit"
       >
-        <UFormField name="title">
+        <UFormField
+          name="title"
+          label="Title"
+        >
           <UInput
             v-model="state.title"
             placeholder="Add a title"
-            size="lg"
+            color="neutral"
+            variant="subtle"
             autofocus
             class="w-full"
           />
@@ -122,6 +128,8 @@ function onRemove() {
             <UInputDate
               ref="inputDate"
               v-model="state.date"
+              color="neutral"
+              variant="subtle"
             >
               <template #trailing>
                 <UPopover :reference="inputDate?.inputsRef[3]?.$el">
@@ -131,7 +139,7 @@ function onRemove() {
                     size="sm"
                     icon="i-lucide-calendar"
                     aria-label="Select a date"
-                    class="px-0"
+                    class="p-0 rounded-xs"
                   />
 
                   <template #content>
@@ -154,6 +162,8 @@ function onRemove() {
               <UInputTime
                 v-model="state.startTime"
                 :hour-cycle="24"
+                color="neutral"
+                variant="subtle"
               />
             </UFormField>
 
@@ -164,6 +174,8 @@ function onRemove() {
               <UInputTime
                 v-model="state.endTime"
                 :hour-cycle="24"
+                color="neutral"
+                variant="subtle"
               />
             </UFormField>
           </template>
@@ -172,6 +184,7 @@ function onRemove() {
         <USwitch
           v-model="state.allDay"
           label="All day"
+          color="neutral"
         />
 
         <UFormField
@@ -181,6 +194,8 @@ function onRemove() {
           <USelect
             v-model="state.calendarId"
             :items="calendarItems"
+            color="neutral"
+            variant="subtle"
             class="w-48"
           />
         </UFormField>
@@ -192,6 +207,8 @@ function onRemove() {
           <UTextarea
             v-model="state.description"
             placeholder="Add a description"
+            color="neutral"
+            variant="subtle"
             :rows="3"
             class="w-full"
           />
@@ -213,6 +230,7 @@ function onRemove() {
       <UButton
         type="submit"
         form="event-form"
+        color="neutral"
         :label="editingEvent ? 'Save' : 'Create'"
       />
     </template>

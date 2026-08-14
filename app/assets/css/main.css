@@ -24,6 +24,51 @@
   }
 }
 
+/* Unlayered, which is what lets `--ui-radius` land: Nuxt UI declares it in the
+   theme layer, and a layered override only wins from a later layer, which
+   `base` is not from inside a component's own stylesheet. Unlayered beats
+   every layer, so the tokens below are the ones that apply */
+
+/* The glass anything floating is cut from. Blurred and pushed in saturation so
+   colour survives the blur, over a fill light enough to keep whatever it
+   covers legible. Dark glass brightens what is behind it rather than dimming
+   it, the way a lit pane over a dark room does */
+:root {
+  /* Every `rounded-*` utility resolves to `calc(var(--ui-radius) * n)`, so this
+     one value rounds every surface at once: `rounded-md` lands at 12px for the
+     popovers, `rounded-lg` at 16px for the modal and the sidebar */
+  --ui-radius: 0.5rem;
+
+  --glass-bg: rgb(255 255 255 / 0.42);
+  --glass-blur: 24px;
+  --glass-saturate: 180%;
+  --glass-brightness: 105%;
+  --glass-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+}
+
+.dark {
+  --glass-bg: rgb(28 28 30 / 0.66);
+  --glass-blur: 28px;
+  --glass-saturate: 150%;
+  --glass-brightness: 110%;
+}
+
+/* Frosted over to fully solid */
+@media (prefers-reduced-transparency: reduce) {
+  :root,
+  .dark {
+    --glass-bg: var(--ui-bg);
+    --glass-blur: 0px;
+  }
+}
+
+/* Only the material, no fill or shadow of its own, so it drops on top of a
+   Nuxt UI component without colliding with the ring and shadow it ships */
+@utility glass-material {
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+}
+
 /* Slide the calendar grid on prev/next navigation, driven by the
    `data-nav-direction` attribute set in `useCalendar` */
 ::view-transition-old(calendar),
