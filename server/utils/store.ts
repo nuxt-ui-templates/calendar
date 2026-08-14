@@ -61,6 +61,12 @@ function chance(week: number, key: string): number {
   return value - Math.floor(value)
 }
 
+// Deterministic pick for a given week and key, so a drawn event varies its
+// day, hour or title from week to week without losing the stable seed
+function pick<T>(week: number, key: string, options: T[]): T {
+  return options[Math.floor(chance(week, key) * options.length)]!
+}
+
 // Deterministic seed relative to now so the demo is always populated,
 // same trick as the dashboard template's notifications endpoint
 function seed(): Map<string, CalendarEvent> {
@@ -81,7 +87,7 @@ function seed(): Map<string, CalendarEvent> {
     events.push(
       timed(id('one-on-one'), 'work', '1:1 with Sam', at(thu!, 11), 30),
       timed(id('ship'), 'side-project', 'Ship weekly update', at(fri!, 17), 30),
-      timed(id('run'), 'personal', 'Long run', at(sat!, 9), 60)
+      timed(id('run'), 'personal', 'Long run', at(pick(offset, 'run-day', [sat!, sun!]), pick(offset, 'run-time', [8, 9])), 60)
     )
 
     // Sprints run fortnightly, so planning and retro come in pairs
@@ -92,29 +98,33 @@ function seed(): Map<string, CalendarEvent> {
       )
     }
 
-    // Drawn per week so the calendar has quiet stretches and busy ones
-    // instead of the same grid repeated
-    const optional: [string, number, CalendarEvent][] = [
-      ['design-review', 0.5, timed(id('design-review'), 'work', 'Design review', at(tue!, 14), 60)],
-      ['pairing', 0.4, timed(id('pairing'), 'work', 'Pair on API caching', at(wed!, 10), 120)],
-      ['roadmap', 0.25, timed(id('roadmap'), 'work', 'Roadmap review', at(wed!, 15), 60)],
-      ['interview', 0.2, timed(id('interview'), 'work', 'Interview', at(tue!, 11), 45)],
-      ['gym-1', 0.7, timed(id('gym-1'), 'personal', 'Gym', at(tue!, 7), 60)],
-      ['gym-2', 0.7, timed(id('gym-2'), 'personal', 'Gym', at(thu!, 7), 60)],
-      ['lunch', 0.3, timed(id('lunch'), 'personal', 'Lunch with Alex', at(thu!, 12, 30), 60)],
-      ['dinner', 0.3, timed(id('dinner'), 'personal', 'Dinner with friends', at(fri!, 19, 30), 150)],
-      ['market', 0.35, timed(id('market'), 'personal', 'Farmers market', at(sat!, 10, 30), 60)],
-      ['plants', 0.5, timed(id('plants'), 'personal', 'Water plants', at(sun!, 10), 15)],
-      ['focus-1', 0.5, timed(id('focus-1'), 'side-project', 'Focus time', at(tue!, 20), 120, 'Deep work on the side project.')],
-      ['focus-2', 0.4, timed(id('focus-2'), 'side-project', 'Focus time', at(thu!, 20), 120)],
-      ['offsite', 0.07, allDay(id('offsite'), 'work', 'Team offsite', wed!, 2)],
-      ['launch', 0.06, allDay(id('launch'), 'side-project', 'Launch day', thu!)],
-      ['holiday', 0.05, allDay(id('holiday'), 'personal', 'Time off', mon!, 5, 'Out of office, back next week.')]
+    // Drawn per week, each picking its own day, hour or title per week too,
+    // so the calendar has quiet stretches, busy ones and no two months alike.
+    // Closures so an event that does not come up is never built
+    const optional: [string, number, () => CalendarEvent][] = [
+      ['design-review', 0.5, () => timed(id('design-review'), 'work', 'Design review', at(pick(offset, 'design-review-day', [tue!, wed!]), 14), 60)],
+      ['pairing', 0.4, () => timed(id('pairing'), 'work', 'Pair on API caching', at(pick(offset, 'pairing-day', [wed!, thu!]), pick(offset, 'pairing-time', [10, 14])), 120)],
+      ['roadmap', 0.25, () => timed(id('roadmap'), 'work', 'Roadmap review', at(wed!, 15), 60)],
+      ['interview', 0.2, () => timed(id('interview'), 'work', 'Interview', at(pick(offset, 'interview-day', [tue!, fri!]), 11), 45)],
+      ['gym-1', 0.7, () => timed(id('gym-1'), 'personal', 'Gym', at(tue!, pick(offset, 'gym-1-time', [7, 18])), 60)],
+      ['gym-2', 0.7, () => timed(id('gym-2'), 'personal', 'Gym', at(thu!, pick(offset, 'gym-2-time', [7, 18])), 60)],
+      ['lunch', 0.35, () => timed(id('lunch'), 'personal', pick(offset, 'lunch-title', ['Lunch with Alex', 'Lunch with Maria', 'Team lunch']), at(pick(offset, 'lunch-day', [tue!, thu!]), 12, 30), 60)],
+      ['dinner', 0.35, () => timed(id('dinner'), 'personal', pick(offset, 'dinner-title', ['Dinner with friends', 'Date night', 'Team dinner']), at(pick(offset, 'dinner-day', [fri!, sat!]), 19, 30), 150)],
+      ['market', 0.35, () => timed(id('market'), 'personal', 'Farmers market', at(pick(offset, 'market-day', [sat!, sun!]), 10, 30), 60)],
+      ['plants', 0.5, () => timed(id('plants'), 'personal', 'Water plants', at(sun!, 10), 15)],
+      ['errand', 0.25, () => timed(id('errand'), 'personal', pick(offset, 'errand-title', ['Dentist', 'Haircut', 'Car service', 'Pick up package']), at(pick(offset, 'errand-day', [mon!, wed!, sat!]), pick(offset, 'errand-time', [9, 16, 17])), 45)],
+      ['evening-out', 0.2, () => timed(id('evening-out'), 'personal', pick(offset, 'evening-out-title', ['Concert', 'Movie night', 'Board games']), at(pick(offset, 'evening-out-day', [thu!, fri!, sat!]), 20), 180)],
+      ['focus-1', 0.5, () => timed(id('focus-1'), 'side-project', 'Focus time', at(pick(offset, 'focus-1-day', [mon!, tue!]), 20), 120, 'Deep work on the side project.')],
+      ['focus-2', 0.4, () => timed(id('focus-2'), 'side-project', 'Focus time', at(pick(offset, 'focus-2-day', [wed!, thu!]), 20), 120)],
+      ['stream', 0.15, () => timed(id('stream'), 'side-project', 'Live stream', at(pick(offset, 'stream-day', [tue!, wed!]), 18), 90)],
+      ['offsite', 0.07, () => allDay(id('offsite'), 'work', 'Team offsite', pick(offset, 'offsite-day', [tue!, wed!]), 2)],
+      ['launch', 0.06, () => allDay(id('launch'), 'side-project', 'Launch day', thu!)],
+      ['holiday', 0.05, () => allDay(id('holiday'), 'personal', 'Time off', mon!, 5, 'Out of office, back next week.')]
     ]
 
-    for (const [key, probability, event] of optional) {
+    for (const [key, probability, make] of optional) {
       if (chance(offset, key) < probability) {
-        events.push(event)
+        events.push(make())
       }
     }
   }
