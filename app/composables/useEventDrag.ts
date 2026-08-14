@@ -1,4 +1,4 @@
-import { addMinutes } from 'date-fns'
+import { addDays, addMinutes } from 'date-fns'
 
 const DRAG_THRESHOLD = 5
 
@@ -80,38 +80,60 @@ export function useEventDrag(
     }
   }
 
-  function onPointerup() {
-    if (!active) {
-      return
-    }
-
-    if (dragging.value && (deltaMinutes.value !== 0 || deltaDays.value !== 0)) {
-      const source = toValue(event)
-      const start = new Date(source.start)
-      const end = new Date(source.end)
-
-      if (mode.value === 'move') {
-        const shift = deltaDays.value * 24 * 60 + deltaMinutes.value
-        options.onCommit(addMinutes(start, shift), addMinutes(end, shift))
-      } else {
-        const resized = addMinutes(end, deltaMinutes.value)
-        options.onCommit(start, resized > addMinutes(start, SNAP_MINUTES) ? resized : addMinutes(start, SNAP_MINUTES))
-      }
-    }
-
-    reset()
-    // Let the trailing click event pass before re-enabling the popover
+  // Let the trailing click event pass before re-enabling the popover
+  function release() {
     setTimeout(() => {
       suppressed.value = false
     })
   }
 
+  function onPointerup() {
+    if (active) {
+      if (dragging.value && (deltaMinutes.value !== 0 || deltaDays.value !== 0)) {
+        const source = toValue(event)
+        const start = new Date(source.start)
+        const end = new Date(source.end)
+
+        if (mode.value === 'move') {
+          // `addDays` for the column step so the wall clock survives DST,
+          // only the vertical part of the drag is real minutes
+          const shift = (date: Date) => addMinutes(addDays(date, deltaDays.value), deltaMinutes.value)
+
+          options.onCommit(shift(start), shift(end))
+        } else {
+          const resized = addMinutes(end, deltaMinutes.value)
+          options.onCommit(start, resized > addMinutes(start, SNAP_MINUTES) ? resized : addMinutes(start, SNAP_MINUTES))
+        }
+      }
+
+      reset()
+    }
+
+    // Runs even after an Escape cancel dropped `active`, it is what clears
+    // the suppression once the pointer really lifts
+    release()
+  }
+
+  function onPointercancel() {
+    reset()
+    release()
+  }
+
   useEventListener('keydown', (keyboardEvent: KeyboardEvent) => {
+    // Cancels the drag but keeps the popover suppressed: the pointer is
+    // still down and the click its release fires should not open it
     if (keyboardEvent.key === 'Escape' && dragging.value) {
       reset()
-      setTimeout(() => {
-        suppressed.value = false
-      })
+    }
+  })
+
+  // A gesture can end without a pointer event: releasing the mouse outside
+  // the window after switching apps fires neither pointerup nor
+  // pointercancel, which would leave the popover suppressed for good
+  useEventListener('blur', () => {
+    if (active || suppressed.value) {
+      reset()
+      release()
     }
   })
 
@@ -123,6 +145,7 @@ export function useEventDrag(
     deltaX,
     onPointerdown,
     onPointermove,
-    onPointerup
+    onPointerup,
+    onPointercancel
   }
 }

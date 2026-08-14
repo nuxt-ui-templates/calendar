@@ -3,6 +3,8 @@ import { differenceInCalendarDays, differenceInMinutes, startOfDay } from 'date-
 export const HOUR_HEIGHT = 64
 export const PX_PER_MINUTE = HOUR_HEIGHT / 60
 export const SNAP_MINUTES = 15
+// The painted minimum, not a duration floor: a 15-minute event (the resize
+// snap is the real minimum) still draws at this height to stay readable
 export const MIN_EVENT_MINUTES = 30
 
 export interface PositionedEvent {

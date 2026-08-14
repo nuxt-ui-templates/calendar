@@ -18,10 +18,11 @@ const {
   deltaX,
   onPointerdown,
   onPointermove,
-  onPointerup
+  onPointerup,
+  onPointercancel
 } = useEventDrag(event, {
   onCommit(start, end) {
-    updateEvent({ ...event.value, start: start.toISOString(), end: end.toISOString() })
+    updateEvent({ ...event.value, start: toLocalISO(start), end: toLocalISO(end) })
   }
 })
 
@@ -74,6 +75,7 @@ const compact = computed(() => props.positioned.height < 40)
       @pointerdown="onPointerdown"
       @pointermove="onPointermove"
       @pointerup="onPointerup"
+      @pointercancel="onPointercancel"
     >
       <span
         class="absolute inset-s-1 inset-y-1 w-1 rounded-full"
