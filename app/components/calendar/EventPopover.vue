@@ -20,7 +20,29 @@ const time = computed(() => {
   return `${formatFullDate(start)} ⋅ ${formatTime(start)} – ${formatTime(new Date(props.event.end))}`
 })
 
-const mounted = useMounted()
+// A popover and a context menu each are what an event costs to render, and the
+// month view puts a few hundred of them on screen at once. Neither is worth
+// anything until an event is actually pointed at, so they mount on the first
+// interaction that could reach them, all of which come before it can open one.
+// Starting out unarmed also keeps their generated ids off the server render,
+// where they are not stable across the boundary
+const armed = ref(false)
+
+const root = useTemplateRef('root')
+
+function arm(event: Event) {
+  if (armed.value) {
+    return
+  }
+
+  armed.value = true
+
+  // Arming swaps the event out for the wrapped copy, so a keyboard user
+  // tabbing onto it has to be handed the one taking its place
+  if (event.type === 'focusin') {
+    nextTick(() => root.value?.querySelector<HTMLElement>('[data-event]')?.focus())
+  }
+}
 
 const open = ref(false)
 
@@ -55,68 +77,76 @@ const items = computed<ContextMenuItem[]>(() => [{
 </script>
 
 <template>
-  <!-- The popover only wraps the trigger after mount: its generated ids are
-    not stable across the server/client boundary -->
-  <slot v-if="!mounted" />
-
-  <!-- `as-child` drops its handlers on a component that renders a fragment, so
-    the two triggers need a real element between them. `contents` keeps it out
-    of the layout, the trigger stays the event itself -->
-  <UContextMenu
-    v-else
-    :items="items"
-    :disabled="disabled"
+  <!-- Held across the swap so the focus has somewhere to go back to. `contents`
+    keeps it out of the layout, on both this one and the one below -->
+  <div
+    ref="root"
+    class="contents"
+    @pointerover="arm"
+    @focusin="arm"
+    @contextmenu="arm"
   >
-    <div class="contents">
-      <UPopover
-        :open="open"
-        :ui="{ content: 'flex flex-col gap-1 p-4 w-72' }"
-        @update:open="onUpdateOpen"
-      >
-        <slot />
+    <slot v-if="!armed" />
 
-        <template #content>
-          <div class="flex items-start justify-between gap-2">
-            <p class="font-semibold text-highlighted">
-              {{ event.title }}
+    <!-- `as-child` drops its handlers on a component that renders a fragment,
+      so the two triggers need a real element between them, and the trigger
+      stays the event itself -->
+    <UContextMenu
+      v-else
+      :items="items"
+      :disabled="disabled"
+    >
+      <div class="contents">
+        <UPopover
+          :open="open"
+          :ui="{ content: 'flex flex-col gap-1 p-4 w-72' }"
+          @update:open="onUpdateOpen"
+        >
+          <slot />
+
+          <template #content>
+            <div class="flex items-start justify-between gap-2">
+              <p class="font-semibold text-highlighted">
+                {{ event.title }}
+              </p>
+
+              <UTheme :props="{ button: { color: 'neutral', variant: 'ghost', size: 'sm' } }">
+                <div class="flex -mt-1.5 -me-1.5">
+                  <UButton
+                    icon="i-lucide-pencil"
+                    aria-label="Edit event"
+                    @click="onEdit"
+                  />
+                  <UButton
+                    icon="i-lucide-trash-2"
+                    aria-label="Delete event"
+                    @click="onRemove"
+                  />
+                </div>
+              </UTheme>
+            </div>
+
+            <p class="text-sm text-muted">
+              {{ time }}
             </p>
 
-            <UTheme :props="{ button: { color: 'neutral', variant: 'ghost', size: 'sm' } }">
-              <div class="flex -mt-1.5 -me-1.5">
-                <UButton
-                  icon="i-lucide-pencil"
-                  aria-label="Edit event"
-                  @click="onEdit"
-                />
-                <UButton
-                  icon="i-lucide-trash-2"
-                  aria-label="Delete event"
-                  @click="onRemove"
-                />
-              </div>
-            </UTheme>
-          </div>
+            <p
+              v-if="event.description"
+              class="text-sm text-default"
+            >
+              {{ event.description }}
+            </p>
 
-          <p class="text-sm text-muted">
-            {{ time }}
-          </p>
-
-          <p
-            v-if="event.description"
-            class="text-sm text-default"
-          >
-            {{ event.description }}
-          </p>
-
-          <UBadge
-            :label="calendar?.name"
-            :color="calendar?.color"
-            variant="subtle"
-            size="sm"
-            class="self-start mt-1"
-          />
-        </template>
-      </UPopover>
-    </div>
-  </UContextMenu>
+            <UBadge
+              :label="calendar?.name"
+              :color="calendar?.color"
+              variant="subtle"
+              size="sm"
+              class="self-start mt-1"
+            />
+          </template>
+        </UPopover>
+      </div>
+    </UContextMenu>
+  </div>
 </template>

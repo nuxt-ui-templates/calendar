@@ -43,6 +43,15 @@ function indexOf(day: Date): number {
   return Math.min(weeks.length - 1, Math.max(0, differenceInCalendarWeeks(day, firstWeek, { weekStartsOn: 1 })))
 }
 
+// The virtualizer renders from this offset on its very first pass, so the list
+// mounts on the anchor month instead of mounting five years back and throwing
+// those rows away on the scroll below. `scrollToIndex` lands on the same offset
+// (`paddingStart` and `scrollPaddingStart` cancel out), so the scroll it
+// triggers finds the range already right and renders nothing new
+function initialOffset(): number {
+  return indexOf(monthRange(date.value).start) * ROW_HEIGHT
+}
+
 // SSR fallback: the anchor month as a static grid, swapped for the
 // virtualized list once mounted
 const fallbackWeeks = computed(() => {
@@ -350,7 +359,7 @@ onUnmounted(() => {
       <UScrollArea
         ref="scrollArea"
         :items="weeks"
-        :virtualize="{ estimateSize: ROW_HEIGHT, skipMeasurement: true, overscan: 4, paddingStart: CHROME_HEIGHT, scrollPaddingStart: CHROME_HEIGHT }"
+        :virtualize="{ estimateSize: ROW_HEIGHT, skipMeasurement: true, overscan: 4, paddingStart: CHROME_HEIGHT, scrollPaddingStart: CHROME_HEIGHT, initialOffset }"
         :ui="{ item: 'snap-start' }"
         :style="{ scrollPaddingTop: `${CHROME_HEIGHT}px` }"
         class="flex-1 snap-y snap-proximity [view-transition-name:calendar]"

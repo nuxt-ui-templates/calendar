@@ -96,18 +96,22 @@ function onCellClick(day: Date) {
       @click="onCellClick(day)"
     />
 
-    <UButton
+    <!-- A `UButton` here would be the ghost and solid `xs` variants, but the
+      month view renders a hundred of these at once and resolving the theme
+      that many times is what made switching to it slow. It is a link, so it
+      renders as one -->
+    <NuxtLink
       v-for="({ day }, index) in cells"
       :key="`number-${day.getTime()}`"
       :to="pathFor(toCalendarDate(day), 'day')"
-      :label="label(day)"
-      :color="isToday(day) ? 'primary' : 'neutral'"
-      :variant="isToday(day) ? 'solid' : 'ghost'"
-      size="xs"
-      class="row-start-1 justify-self-end justify-center h-6 min-w-6 m-0.5 px-1 font-semibold rounded-full"
-      :class="isToday(day) ? 'hover:bg-primary' : 'text-default'"
+      class="row-start-1 justify-self-end inline-flex items-center justify-center h-6 min-w-6 m-0.5 px-1 py-1 text-xs font-semibold rounded-full transition-colors focus-visible:outline-3"
+      :class="isToday(day)
+        ? 'text-inverted bg-primary active:bg-primary/75 outline-primary/25'
+        : 'text-default hover:bg-elevated active:bg-elevated outline-inverted/25'"
       :style="{ gridColumn: index + 1 }"
-    />
+    >
+      {{ label(day) }}
+    </NuxtLink>
 
     <CalendarEventChip
       v-for="{ event, colStart, colSpan, lane, continuesBefore, continuesAfter } in bars"
