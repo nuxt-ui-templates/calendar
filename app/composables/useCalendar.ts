@@ -32,7 +32,7 @@ const _useCalendar = () => {
       const focus = visibleMonth.value ?? date.value
 
       return {
-        months: new Intl.DateTimeFormat('en-US', { month: 'long' }).format(toDate(focus)),
+        months: formatMonth(toDate(focus)),
         year: String(focus.year)
       }
     }
