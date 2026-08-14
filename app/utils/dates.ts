@@ -49,9 +49,20 @@ export function monthRange(date: CalendarDate): DateRange {
   return { start, end: addDays(start, 42) }
 }
 
+// What the month view fetches and its SSR fallback renders: the grid's six
+// weeks plus the rows a tall viewport shows below them, so a refresh paints
+// real events all the way down instead of placeholders
+export const MONTH_FETCH_WEEKS = 12
+
+export function monthFetchRange(date: CalendarDate): DateRange {
+  const { start } = monthRange(date)
+
+  return { start, end: addDays(start, MONTH_FETCH_WEEKS * 7) }
+}
+
 export function rangeFor(view: CalendarView, date: CalendarDate): DateRange {
   if (view === 'month') {
-    return monthRange(date)
+    return monthFetchRange(date)
   }
 
   return weekRange(date, view === 'day' ? 1 : 7)

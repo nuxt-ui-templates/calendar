@@ -15,7 +15,7 @@ const props = defineProps<{
 }>()
 
 const { pathFor, createEvent } = useCalendar()
-const { eventsForDay, eventsForDays } = useCalendarEvents()
+const { eventsForDay, eventsForDays, pendingRanges } = useCalendarEvents()
 
 const days = computed(() => Array.from({ length: 7 }, (_, index) => addDays(props.weekStart, index)))
 const weekEnd = computed(() => addDays(props.weekStart, 7))
@@ -45,12 +45,13 @@ const cells = computed(() => days.value.map((day, index) => {
     .filter(event => !event.allDay)
     .sort((a, b) => a.start.localeCompare(b.start))
 
-  const occupied = new Set(bars.value.filter(bar => covers(bar, index)).map(bar => bar.lane))
-  const free = Array.from({ length: MAX_SLOTS }, (_, slot) => slot).filter(slot => !occupied.has(slot))
+  // One pass over the lanes: bars past the last lane never render, they only
+  // count towards the overflow
+  const covering = lanes.value.filter(bar => covers(bar, index))
+  const occupied = new Set(covering.filter(bar => bar.lane < MAX_LANES).map(bar => bar.lane))
+  const dropped = covering.filter(bar => bar.lane >= MAX_LANES)
 
-  // All-day events past the last lane never render, they only count towards
-  // the overflow
-  const dropped = lanes.value.filter(bar => bar.lane >= MAX_LANES && covers(bar, index)).map(bar => bar.event)
+  const free = Array.from({ length: MAX_SLOTS }, (_, slot) => slot).filter(slot => !occupied.has(slot))
 
   const overflows = dropped.length > 0 || timed.length > free.length
   const visible = timed.slice(0, overflows ? free.length - 1 : free.length)
@@ -58,11 +59,23 @@ const cells = computed(() => days.value.map((day, index) => {
   return {
     day,
     events: visible.map((event, slot) => ({ event, slot: free[slot]! })),
+    // The popover lists the whole day, visible bars included, so the hidden
+    // count is carried alongside rather than derived from its length
     more: overflows
-      ? { slot: free[visible.length]!, events: [...dropped, ...timed] }
+      ? { slot: free[visible.length]!, hidden: dropped.length + timed.length - visible.length, events: [...covering.map(bar => bar.event), ...timed] }
       : null
   }
 }))
+
+// Placeholder chips while this week's events are in flight, a fixed pattern
+// like the week view's so the grid reads as busy without being uniform
+const SKELETONS: [number, number][] = [[0, 0], [1, 0], [1, 1], [3, 0], [4, 0], [4, 1], [6, 0]]
+
+// The range test first: it is the cheap one and the false one for almost
+// every row
+const loading = computed(() => Object.values(pendingRanges.value).some(range => props.weekStart >= range.start && props.weekStart < range.end)
+  && !bars.value.length
+  && cells.value.every(cell => !cell.events.length && !cell.more))
 
 function label(day: Date): string {
   if (day.getDate() === 1) {
@@ -113,6 +126,13 @@ function onCellClick(day: Date) {
       {{ label(day) }}
     </NuxtLink>
 
+    <USkeleton
+      v-for="[day, slot] in loading ? SKELETONS : []"
+      :key="`skeleton-${day}-${slot}`"
+      class="self-start mx-0.5 h-5 rounded-full"
+      :style="{ gridColumn: day + 1, gridRow: slot + 2 }"
+    />
+
     <CalendarEventChip
       v-for="{ event, colStart, colSpan, lane, continuesBefore, continuesAfter } in bars"
       :key="event.id"
@@ -140,7 +160,7 @@ function onCellClick(day: Date) {
         :ui="{ content: 'flex flex-col gap-0.5 p-2 w-64' }"
       >
         <UButton
-          :label="`+${more.events.length - dayEvents.length} more`"
+          :label="`+${more.hidden} more`"
           color="neutral"
           variant="ghost"
           size="xs"

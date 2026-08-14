@@ -2,8 +2,8 @@
 import { addDays, addWeeks, differenceInCalendarWeeks, startOfWeek } from 'date-fns'
 import type { CalendarDate } from '@internationalized/date'
 
-// ±5 years of week rows, virtualized so only the visible ones render
-const WEEKS_AROUND = 260
+// ±5 years of week rows (the shared `WEEKS_AROUND`, which the server seeds
+// events for), virtualized so only the visible ones render
 const ROW_HEIGHT = 140
 const CHUNK_WEEKS = 6
 // Height of a month label, spacing the sticky stack in the overlay. It is the
@@ -53,11 +53,13 @@ function initialOffset(): number {
 }
 
 // SSR fallback: the anchor month as a static grid, swapped for the
-// virtualized list once mounted
+// virtualized list once mounted. As many rows as the route fetch covers, so
+// a tall viewport gets real events all the way down, clipped where they
+// overshoot
 const fallbackWeeks = computed(() => {
   const start = monthRange(date.value).start
 
-  return Array.from({ length: 6 }, (_, index) => addWeeks(start, index))
+  return Array.from({ length: MONTH_FETCH_WEEKS }, (_, index) => addWeeks(start, index))
 })
 
 const scrollArea = useTemplateRef('scrollArea')
