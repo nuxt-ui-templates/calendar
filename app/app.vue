@@ -40,8 +40,14 @@ useSeoMeta({
   <UApp>
     <NuxtLoadingIndicator />
 
-    <NuxtLayout>
+    <div class="isolate relative flex h-svh overflow-hidden">
+      <AppSidebar />
+
       <NuxtPage />
-    </NuxtLayout>
+
+      <CalendarEventModal />
+
+      <CommandPalette />
+    </div>
   </UApp>
 </template>
