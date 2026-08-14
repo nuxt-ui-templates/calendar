@@ -38,7 +38,7 @@ useHead({
 
       <CalendarEventModal />
 
-      <CommandPalette />
+      <AppSearch />
     </div>
   </UApp>
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CommandPaletteGroup, CommandPaletteItem } from '@nuxt/ui'
 
-const { view, date, pathFor, createEvent, editEvent, isCommandPaletteOpen } = useCalendar()
+const { view, date, pathFor, createEvent, editEvent, isSearchOpen } = useCalendar()
 const { events, calendars, hiddenCalendars, toggleCalendar } = useCalendarEvents()
 
 const views = [
@@ -68,7 +68,7 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
 
 <template>
   <UModal
-    v-model:open="isCommandPaletteOpen"
+    v-model:open="isSearchOpen"
     :transition="false"
     :unmount-on-close="false"
     :ui="{ content: 'sm:max-w-2xl' }"
@@ -79,8 +79,8 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
         placeholder="Search events, switch views..."
         close
         class="h-96"
-        @update:model-value="isCommandPaletteOpen = false"
-        @update:open="isCommandPaletteOpen = false"
+        @update:model-value="isSearchOpen = false"
+        @update:open="isSearchOpen = false"
       >
         <!-- Where the palette puts its own selected mark, so a shown calendar
           reads the same as anything it ticks itself -->

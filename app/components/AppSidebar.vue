@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { createEvent, isCommandPaletteOpen, isEventModalOpen, isSidebarOpen } = useCalendar()
+const { createEvent, isSearchOpen, isEventModalOpen, isSidebarOpen } = useCalendar()
 
 const route = useRoute()
 
@@ -9,7 +9,7 @@ const isMobile = useMediaQuery('(max-width: 1023px)')
 
 // Everything the menu offers takes over the screen on a phone, so it steps
 // out of the way once one of them is on its way in
-watch([() => route.fullPath, isEventModalOpen, isCommandPaletteOpen], () => {
+watch([() => route.fullPath, isEventModalOpen, isSearchOpen], () => {
   if (isMobile.value) {
     isSidebarOpen.value = false
   }
@@ -60,7 +60,7 @@ watch([() => route.fullPath, isEventModalOpen, isCommandPaletteOpen], () => {
               variant="soft"
               aria-label="Search"
               class="hidden lg:inline-flex rounded-full"
-              @click="isCommandPaletteOpen = true"
+              @click="isSearchOpen = true"
             />
           </UTooltip>
 
@@ -84,14 +84,14 @@ watch([() => route.fullPath, isEventModalOpen, isCommandPaletteOpen], () => {
       variant="soft"
       label="Search"
       class="mt-2 lg:hidden"
-      @click="isCommandPaletteOpen = true"
+      @click="isSearchOpen = true"
     />
 
     <CalendarList />
 
     <USeparator class="mt-auto" />
 
-    <CalendarMiniCalendar />
+    <CalendarMini />
 
     <template #footer>
       <UserMenu />

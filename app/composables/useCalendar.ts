@@ -71,7 +71,7 @@ const _useCalendar = () => {
   const isSidebarOpen = ref(true)
 
   const isEventModalOpen = ref(false)
-  const isCommandPaletteOpen = ref(false)
+  const isSearchOpen = ref(false)
   const editingEvent = ref<CalendarEvent | null>(null)
   const eventDefaults = ref<{ start: Date, end: Date, allDay?: boolean } | null>(null)
 
@@ -92,7 +92,7 @@ const _useCalendar = () => {
     meta_k: {
       usingInput: true,
       handler: () => {
-        isCommandPaletteOpen.value = !isCommandPaletteOpen.value
+        isSearchOpen.value = !isSearchOpen.value
       }
     },
     t: () => navigateTo(pathFor(todayDate())),
@@ -123,7 +123,7 @@ const _useCalendar = () => {
     setDirection,
     isSidebarOpen,
     isEventModalOpen,
-    isCommandPaletteOpen,
+    isSearchOpen,
     editingEvent,
     eventDefaults,
     createEvent,
