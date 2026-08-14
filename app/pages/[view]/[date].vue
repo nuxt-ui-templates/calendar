@@ -27,7 +27,7 @@ definePageMeta({
   }]
 })
 
-const { view, date, title, monthLabelsVisible, prevDate, nextDate, pathFor, setDirection } = useCalendar()
+const { view, date, title, monthLabelsVisible, prevDate, nextDate, pathFor, setDirection, isSidebarOpen } = useCalendar()
 const { online, queue } = useCalendarEvents()
 
 const views = [
@@ -57,28 +57,60 @@ function onViewChange(value: string | number) {
         just uncovers sharp content -->
       <div class="pointer-events-none absolute inset-0 -z-10 bg-(--glass-bg) bg-linear-to-b from-default from-40% to-transparent" />
 
-      <!-- The month view slides its own copy of this title over the top while
-        it scrolls, docking it right here, so this one steps aside for as long
-        as they are up. Both sit at the same spot, the swap does not show -->
-      <h1
-        class="flex items-baseline gap-1.5 text-xl sm:text-2xl tracking-tight min-w-0 flex-1 transition-opacity"
-        :class="view === 'month' && monthLabelsVisible ? 'opacity-0 duration-150' : 'opacity-100 duration-300'"
-      >
-        <span class="font-bold text-highlighted truncate">{{ title.months }}</span>
-        <span class="font-normal text-muted hidden sm:inline">{{ title.year }}</span>
-      </h1>
+      <!-- Its own gap rather than the header's, so the title starts at the
+        same spot at every width the menu button shows at and the month view
+        has a single offset to dock its labels on -->
+      <div class="flex items-center gap-2 min-w-0 flex-1">
+        <!-- Below `lg` the sidebar is a slideover, this is what opens it -->
+        <UButton
+          icon="i-lucide-menu"
+          color="neutral"
+          variant="outline"
+          size="sm"
+          aria-label="Open menu"
+          class="lg:hidden shrink-0 rounded-full"
+          @click="isSidebarOpen = true"
+        />
 
+        <!-- The month view slides its own copy of this title over the top
+          while it scrolls, docking it right here, so this one steps aside for
+          as long as they are up. Both sit at the same spot, and it steps aside
+          without fading: two copies of the same text at half opacity each come
+          out lighter than one at full, so a crossfade dips in the middle. It
+          holds instead until the arriving label is all the way in, and is back
+          before the leaving one starts out, always opaque under a partly
+          transparent copy of itself -->
+        <h1
+          class="flex items-baseline gap-1.5 text-xl sm:text-2xl tracking-tight min-w-0 flex-1 transition-opacity duration-0"
+          :class="view === 'month' && monthLabelsVisible ? 'opacity-0 delay-150' : 'opacity-100'"
+        >
+          <span class="font-bold text-highlighted truncate">{{ title.months }}</span>
+          <span class="font-normal text-muted hidden sm:inline">{{ title.year }}</span>
+        </h1>
+      </div>
+
+      <!-- Down to the initial below `md`, where the header cannot spare the
+        width for the labels. The triggers give up their padding for it, three
+        of them share 5rem there -->
       <UTabs
         :items="views"
         :content="false"
         :model-value="view"
         color="neutral"
         size="sm"
-        class="mx-auto hidden md:flex w-48"
+        class="mx-auto w-20 sm:w-42 lg:w-48"
+        :ui="{ trigger: 'p-0.5 lg:p-1.5' }"
         @update:model-value="onViewChange"
-      />
+      >
+        <template #default="{ item }">
+          <span class="sm:hidden">{{ item.label.charAt(0) }}</span>
+          <span class="hidden sm:inline">{{ item.label }}</span>
+        </template>
+      </UTabs>
 
-      <div class="flex items-center gap-2 ms-auto md:ms-0 flex-1 justify-end">
+      <!-- Only the title grows below `md`, so the switcher and the controls
+        stay together on the end rather than drifting apart -->
+      <div class="flex items-center gap-2 md:flex-1 justify-end">
         <UTooltip
           v-if="!online"
           text="Changes are kept locally and sync when you reconnect"
@@ -90,14 +122,6 @@ function onViewChange(value: string | number) {
             :label="queue.length ? `Offline (${queue.length})` : 'Offline'"
           />
         </UTooltip>
-
-        <USelect
-          :items="views"
-          :model-value="view"
-          size="sm"
-          class="md:hidden w-24"
-          @update:model-value="onViewChange"
-        />
 
         <UTheme :props="{ button: { color: 'neutral', variant: 'soft', size: 'sm', class: 'rounded-full' } }">
           <div class="flex items-center gap-1">
