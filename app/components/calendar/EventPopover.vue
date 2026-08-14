@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { addDays } from 'date-fns'
 import type { ContextMenuItem } from '@nuxt/ui'
 
 const props = defineProps<{
@@ -14,7 +15,11 @@ const calendar = computed(() => calendars.value.find(calendar => calendar.id ===
 const time = computed(() => {
   const start = new Date(props.event.start)
   if (props.event.allDay) {
-    return formatFullDate(start)
+    // The end is the first excluded midnight, so the last covered day is the
+    // one before it
+    const last = addDays(new Date(props.event.end), -1)
+
+    return last > start ? `${formatFullDate(start)} – ${formatFullDate(last)}` : formatFullDate(start)
   }
 
   return `${formatFullDate(start)} ⋅ ${formatTime(start)} – ${formatTime(new Date(props.event.end))}`
