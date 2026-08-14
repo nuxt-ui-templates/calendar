@@ -27,7 +27,7 @@ watch([() => route.fullPath, isEventModalOpen, isCommandPaletteOpen], () => {
     <USidebar
       v-model:open="isSidebarOpen"
       variant="floating"
-      :menu="{ inset: true, ui: { content: 'max-w-xs' } }"
+      :menu="{ inset: true, transition: false, ui: { content: 'max-w-xs' } }"
       :ui="{ container: 'p-2 pe-px border-0' }"
     >
       <template #header="{ close }">
