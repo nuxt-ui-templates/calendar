@@ -4,17 +4,17 @@
 @theme static {
   --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
 
-  --color-red-50: #FEF2F1;
-  --color-red-100: #FEE3DE;
-  --color-red-200: #FFCBC3;
-  --color-red-300: #FFA598;
-  --color-red-400: #FF6858;
-  --color-red-500: #FF3B30;
+  --color-red-50: #FEF2F2;
+  --color-red-100: #FEE0E1;
+  --color-red-200: #FFC7C8;
+  --color-red-300: #FF9D9F;
+  --color-red-400: #FF4245;
+  --color-red-500: #FF383C;
   --color-red-600: #E40109;
   --color-red-700: #BF0106;
-  --color-red-800: #9D0F0C;
-  --color-red-900: #811B14;
-  --color-red-950: #460A07;
+  --color-red-800: #9D0A0D;
+  --color-red-900: #81141A;
+  --color-red-950: #46070A;
 }
 
 @layer base {
