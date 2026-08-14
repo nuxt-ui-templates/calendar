@@ -36,11 +36,19 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
 }, {
   id: 'calendars',
   label: 'Calendars',
+  // The palette ticks whatever its listbox holds, and that selection is one
+  // model shared by every group: `multiple` would tick the actions, the views
+  // and the events along with these. They keep it open with `preventDefault`
+  // and never reach the model anyway, so the group draws its own mark
+  slot: 'calendar',
   items: calendars.value.map(calendar => ({
     label: calendar.name,
     chip: { color: calendar.color },
-    suffix: hiddenCalendars.value.includes(calendar.id) ? 'Show' : 'Hide',
-    onSelect: () => toggleCalendar(calendar.id)
+    checked: !hiddenCalendars.value.includes(calendar.id),
+    onSelect: (event: Event) => {
+      event.preventDefault()
+      toggleCalendar(calendar.id)
+    }
   }))
 }, {
   // Only the ranges already fetched, the views load more as you navigate
@@ -73,7 +81,17 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
         class="h-96"
         @update:model-value="isCommandPaletteOpen = false"
         @update:open="isCommandPaletteOpen = false"
-      />
+      >
+        <!-- Where the palette puts its own selected mark, so a shown calendar
+          reads the same as anything it ticks itself -->
+        <template #calendar-trailing="{ item, ui }">
+          <UIcon
+            v-if="item.checked"
+            name="i-lucide-check"
+            :class="ui.itemTrailingIcon()"
+          />
+        </template>
+      </UCommandPalette>
     </template>
   </UModal>
 </template>
