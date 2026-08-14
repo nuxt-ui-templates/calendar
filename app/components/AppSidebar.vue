@@ -26,8 +26,8 @@ watch([() => route.fullPath, isEventModalOpen, isSearchOpen], () => {
   <USidebar
     v-model:open="isSidebarOpen"
     variant="floating"
-    :menu="{ inset: true, transition: false, ui: { content: 'max-w-xs' } }"
-    :ui="{ container: 'p-2 pe-px border-0' }"
+    :menu="{ inset: true, transition: false }"
+    :ui="{ container: 'p-2 pe-px border-0', body: 'pt-1' }"
   >
     <template #header="{ close }">
       <NuxtLink
@@ -51,20 +51,6 @@ watch([() => route.fullPath, isEventModalOpen, isSearchOpen], () => {
           />
 
           <UTooltip
-            text="Search"
-            :kbds="['meta', 'k']"
-          >
-            <UButton
-              icon="i-lucide-search"
-              color="neutral"
-              variant="soft"
-              aria-label="Search"
-              class="hidden lg:inline-flex rounded-full"
-              @click="isSearchOpen = true"
-            />
-          </UTooltip>
-
-          <UTooltip
             text="New event"
             :kbds="['n']"
           >
@@ -83,9 +69,21 @@ watch([() => route.fullPath, isEventModalOpen, isSearchOpen], () => {
       color="neutral"
       variant="soft"
       label="Search"
-      class="mt-2 lg:hidden"
       @click="isSearchOpen = true"
-    />
+    >
+      <template #trailing>
+        <span class="hidden lg:flex items-center gap-0.5 ms-auto">
+          <UKbd
+            value="meta"
+            variant="subtle"
+          />
+          <UKbd
+            value="k"
+            variant="subtle"
+          />
+        </span>
+      </template>
+    </UButton>
 
     <CalendarList />
 

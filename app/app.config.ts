@@ -75,7 +75,7 @@ export default defineAppConfig({
     sidebar: {
       slots: {
         body: 'p-2 gap-2',
-        footer: ['p-2 lg:border-t', border]
+        footer: ['p-2 border-t', border]
       },
       variants: {
         variant: {
@@ -91,7 +91,7 @@ export default defineAppConfig({
     slideover: {
       slots: {
         overlay,
-        content: [content, divide, 'sm:shadow-2xl']
+        content: [content, 'divide-none sm:shadow-2xl']
       }
     },
     tabs: {
