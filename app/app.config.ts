@@ -9,10 +9,12 @@ const frame = 'ring-black/8 dark:ring-white/10 shadow-2xl'
 const content = `${material} ${frame}`
 // A control that sits on chrome: the same material, framed by a hairline
 // rather than lifted off the surface it belongs to
-const control = `${material} ring ring-black/8 dark:ring-white/10`
+const ring = 'ring ring-black/8 dark:ring-white/10'
 // Rules inside glass. `divide-default` is an opaque border colour, which reads
 // as painted on once there is a backdrop showing through behind it
 const divide = 'divide-black/8 dark:divide-white/8'
+// A translucent overlay that fills the viewport
+const overlay = 'backdrop-blur-sm bg-elevated/50'
 
 export default defineAppConfig({
   ui: {
@@ -24,7 +26,7 @@ export default defineAppConfig({
       compoundVariants: [{
         color: 'neutral',
         variant: 'outline',
-        class: control
+        class: ring
       }]
     },
     checkbox: {
@@ -58,12 +60,12 @@ export default defineAppConfig({
     },
     modal: {
       slots: {
-        content: `${content} ${divide}`
+        content: [content, divide]
       },
       variants: {
         overlay: {
           true: {
-            overlay: 'backdrop-blur-sm bg-elevated/50'
+            overlay
           }
         }
       }
@@ -75,15 +77,24 @@ export default defineAppConfig({
     },
     sidebar: {
       slots: {
-        body: 'p-2 pt-0 gap-2',
-        footer: 'p-2 border-t border-default'
+        body: 'p-2 gap-2',
+        footer: 'p-2 lg:border-t border-black/8 dark:border-white/10'
       },
       variants: {
         variant: {
           floating: {
-            inner: `${content} divide-none`
+            inner: [content, 'divide-none']
           }
         }
+      }
+    },
+    // The sidebar menu below `lg`, cut from the same glass as the floating
+    // sidebar it stands in for. The ring and the shadow are restated without
+    // the theme's `sm:` so an inset sheet is framed at phone widths too
+    slideover: {
+      slots: {
+        overlay,
+        content: [content, divide, 'ring sm:shadow-2xl']
       }
     },
     tabs: {
@@ -97,7 +108,7 @@ export default defineAppConfig({
         // `bg-default` surface, reads as raised out of it rather than sunk in
         variant: {
           pill: {
-            list: `${control} rounded-full gap-0.5 bg-black/5 dark:bg-black/40`,
+            list: ['rounded-full gap-0.5 bg-default', ring],
             indicator: 'rounded-full'
           }
         }

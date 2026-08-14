@@ -64,6 +64,12 @@ const _useCalendar = () => {
     })
   })
 
+  // One model for the two states the sidebar keeps: expanded on desktop, the
+  // slideover menu below `lg`. It starts open so the server renders the
+  // expanded sidebar, the component closes it itself on mount once it knows
+  // the viewport is a small one
+  const isSidebarOpen = ref(true)
+
   const isEventModalOpen = ref(false)
   const isCommandPaletteOpen = ref(false)
   const editingEvent = ref<CalendarEvent | null>(null)
@@ -115,6 +121,7 @@ const _useCalendar = () => {
     nextDate,
     pathFor,
     setDirection,
+    isSidebarOpen,
     isEventModalOpen,
     isCommandPaletteOpen,
     editingEvent,
