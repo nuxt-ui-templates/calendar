@@ -135,17 +135,20 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
     label: 'Chat',
     to: 'https://chat-template.nuxt.dev/'
   }, {
-    label: 'Calendar',
-    to: 'https://calendar-template.nuxt.dev/',
-    color: 'primary',
-    checked: true,
-    type: 'checkbox'
-  }, {
     label: 'Portfolio',
     to: 'https://portfolio-template.nuxt.dev/'
   }, {
     label: 'Changelog',
     to: 'https://changelog-template.nuxt.dev/'
+  }, {
+    label: 'Editor',
+    to: 'https://editor-template.nuxt.dev/'
+  }, {
+    label: 'Calendar',
+    to: 'https://calendar-template.nuxt.dev/',
+    color: 'primary',
+    checked: true,
+    type: 'checkbox'
   }]
 }], [{
   label: 'Documentation',
@@ -158,6 +161,11 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
   to: 'https://github.com/nuxt-ui-templates/calendar',
   target: '_blank'
 }, {
+  label: 'Deploy to Vercel',
+  icon: 'i-simple-icons-vercel',
+  to: 'https://vercel.com/new/clone?repository-name=calendar&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fcalendar&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fcalendar-dark.png&demo-url=https%3A%2F%2Fcalendar-template.nuxt.dev%2F&demo-title=Nuxt%20Calendar%20Template&demo-description=An%20Apple%20Calendar-inspired%20template%20with%20day%2C%20week%20and%20month%20views%2C%20drag%20and%20drop%20and%20optimistic%20updates.',
+  target: '_blank'
+}], [{
   label: 'Log out',
   icon: 'i-lucide-log-out'
 }]]))
