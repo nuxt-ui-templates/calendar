@@ -1,4 +1,5 @@
 import { addDays, startOfDay } from 'date-fns'
+import { FetchError } from 'ofetch'
 
 interface EventOverlay {
   created: Record<string, CalendarEvent>
@@ -12,12 +13,15 @@ interface QueuedRequest {
   body?: CalendarEvent
 }
 
+// Keyed and queried by floating local strings so server and client agree: an
+// epoch key differs by the timezone offset between them, so hydration would
+// miss the payload cache and refetch, flashing the events out and back in
 function eventsKey({ start, end }: DateRange): string {
-  return `events-${start.getTime()}-${end.getTime()}`
+  return `events-${toLocalISO(start)}-${toLocalISO(end)}`
 }
 
 function eventsQuery({ start, end }: DateRange) {
-  return { start: start.toISOString(), end: end.toISOString() }
+  return { start: toLocalISO(start), end: toLocalISO(end) }
 }
 
 const _useCalendarEvents = () => {
@@ -79,6 +83,12 @@ const _useCalendarEvents = () => {
   // keyed the same way as the route fetch so the payload cache is shared
   const chunks = useState<Record<string, CalendarEvent[]>>('event-chunks', () => ({}))
 
+  // Ranges with a fetch in flight, so the month view can show placeholders.
+  // Separate because the in-flight marker below is indistinguishable from a
+  // legitimately empty response, and keyed because a deep ref hands back
+  // reactive proxies, so removal by object identity would never match
+  const pendingRanges = ref<Record<string, DateRange>>({})
+
   async function loadRange(range: DateRange) {
     const key = eventsKey(range)
     if (chunks.value[key]) {
@@ -87,12 +97,16 @@ const _useCalendarEvents = () => {
 
     // Mark as in-flight so concurrent scroll events do not refetch
     chunks.value[key] = []
+    pendingRanges.value = { ...pendingRanges.value, [key]: range }
 
     try {
       chunks.value[key] = nuxtApp.payload.data[key] ?? await $fetch<CalendarEvent[]>('/api/events', { query: eventsQuery(range) })
     } catch {
       const { [key]: _failed, ...rest } = chunks.value
       chunks.value = rest
+    } finally {
+      const { [key]: _pending, ...rest } = pendingRanges.value
+      pendingRanges.value = rest
     }
   }
 
@@ -175,18 +189,60 @@ const _useCalendarEvents = () => {
   }
 
   // While offline, mutations stay in the overlay and queue for replay: the
-  // upsert PATCH and idempotent DELETE make replaying in order safe
-  const online = useOnline()
+  // upsert PATCH and idempotent DELETE make replaying in order safe.
+  // `navigator.onLine` alone is not enough: DevTools offline and flaky
+  // networks fail requests without flipping it, so a request that never
+  // reached the server forces offline until a probe gets through
+  const browserOnline = useOnline()
+  const forcedOffline = ref(false)
+  const online = computed(() => browserOnline.value && !forcedOffline.value)
   const queue = useState<QueuedRequest[]>('event-queue', () => [])
 
-  function send(request: QueuedRequest): Promise<unknown> {
+  // ofetch wraps transport failures in a FetchError with no response; an
+  // HTTP error carries one, and anything else is a plain bug that should
+  // surface instead of reading as offline
+  function isNetworkError(error: unknown): boolean {
+    return error instanceof FetchError && !error.response
+  }
+
+  const probe = useIntervalFn(async () => {
+    try {
+      await $fetch('/api/calendars')
+      forcedOffline.value = false
+    } catch {
+      // Still unreachable, keep probing
+    }
+  }, 5000, { immediate: false })
+
+  watch(forcedOffline, offline => offline ? probe.resume() : probe.pause())
+
+  async function send(request: QueuedRequest): Promise<unknown> {
     if (!online.value) {
       queue.value = [...queue.value, request]
 
-      return Promise.resolve()
+      return
     }
 
-    return $fetch(request.path, { method: request.method, body: request.body })
+    try {
+      return await $fetch(request.path, { method: request.method, body: request.body })
+    } catch (error) {
+      if (!isNetworkError(error)) {
+        throw error
+      }
+
+      forcedOffline.value = true
+      queue.value = [...queue.value, request]
+    }
+  }
+
+  // A replayed request the server rejects is dropped for good along with its
+  // optimistic overlay entry: re-queueing it would poison everything behind it
+  function discard(request: QueuedRequest) {
+    const id = request.body?.id ?? request.path.split('/').pop()!
+    const { [id]: _created, ...created } = overlay.value.created
+    const { [id]: _updated, ...updated } = overlay.value.updated
+
+    overlay.value = { created, updated, deleted: overlay.value.deleted.filter(deletedId => deletedId !== id) }
   }
 
   watch(online, async (isOnline) => {
@@ -197,39 +253,73 @@ const _useCalendarEvents = () => {
     const pending = queue.value
     queue.value = []
 
+    let synced = false
+
     for (const [index, request] of pending.entries()) {
       try {
         await $fetch(request.path, { method: request.method, body: request.body })
-      } catch {
-        queue.value = [...pending.slice(index), ...queue.value]
-        toast.add({ title: 'Failed to sync offline changes', color: 'error' })
+        synced = true
+      } catch (error) {
+        // Still unreachable: hold the rest and go quietly back to offline,
+        // the probe will retry
+        if (isNetworkError(error)) {
+          queue.value = [...pending.slice(index), ...queue.value]
+          forcedOffline.value = true
 
-        return
+          return
+        }
+
+        discard(request)
+        toast.add({ title: 'Failed to sync an offline change', color: 'error' })
       }
     }
 
-    toast.add({ title: 'Offline changes synced', color: 'success' })
+    if (synced) {
+      toast.add({ title: 'Offline changes synced', color: 'success' })
+    }
   })
 
-  function mutate(apply: () => void, request: () => Promise<unknown>, message: string) {
-    const snapshot = JSON.parse(JSON.stringify(overlay.value)) as EventOverlay
+  function mutate(id: string, apply: () => void, request: () => Promise<unknown>, message: string) {
+    // Only this event's slots: restoring a snapshot of the whole overlay
+    // would also revert other events' optimistic changes still in flight
+    const snapshot = {
+      created: overlay.value.created[id],
+      updated: overlay.value.updated[id],
+      deleted: overlay.value.deleted.includes(id)
+    }
 
     apply()
 
     request().catch(() => {
-      overlay.value = snapshot
+      const { [id]: _created, ...created } = overlay.value.created
+      const { [id]: _updated, ...updated } = overlay.value.updated
+
+      if (snapshot.created) {
+        created[id] = snapshot.created
+      }
+      if (snapshot.updated) {
+        updated[id] = snapshot.updated
+      }
+
+      // Nothing removes an id from `deleted` while a request is in flight,
+      // so a snapshot that had it can keep the array as is
+      const deleted = snapshot.deleted
+        ? overlay.value.deleted
+        : overlay.value.deleted.filter(deletedId => deletedId !== id)
+
+      overlay.value = { created, updated, deleted }
       toast.add({ title: message, color: 'error' })
     })
   }
 
   function addEvent(event: CalendarEvent) {
-    mutate(() => {
+    mutate(event.id, () => {
       overlay.value.created[event.id] = event
     }, () => send({ method: 'POST', path: '/api/events', body: event }), 'Failed to create event')
   }
 
   function updateEvent(event: CalendarEvent) {
-    mutate(() => {
+    mutate(event.id, () => {
       if (overlay.value.created[event.id]) {
         overlay.value.created[event.id] = event
       } else {
@@ -239,11 +329,13 @@ const _useCalendarEvents = () => {
   }
 
   function removeEvent(id: string) {
-    mutate(() => {
+    mutate(id, () => {
       const { [id]: _created, ...created } = overlay.value.created
       const { [id]: _updated, ...updated } = overlay.value.updated
 
-      overlay.value = { created, updated, deleted: [...overlay.value.deleted, id] }
+      const deleted = overlay.value.deleted.includes(id) ? overlay.value.deleted : [...overlay.value.deleted, id]
+
+      overlay.value = { created, updated, deleted }
     }, () => send({ method: 'DELETE', path: `/api/events/${id}` }), 'Failed to delete event')
   }
 
@@ -258,6 +350,7 @@ const _useCalendarEvents = () => {
     online,
     queue,
     loadRange,
+    pendingRanges,
     warmRange,
     addEvent,
     updateEvent,
