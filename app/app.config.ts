@@ -92,7 +92,36 @@ export default defineAppConfig({
       slots: {
         overlay,
         content: [content, 'divide-none sm:shadow-2xl']
-      }
+      },
+      // The theme insets by 4, the floating sidebar this stands in for by 2,
+      // so the gutter is restated per side. It has to be a compound variant:
+      // the theme sets the edges from one of its own, which lands after
+      // anything on a slot or a variant
+      compoundVariants: [{
+        side: 'top',
+        inset: true,
+        class: {
+          content: 'max-h-[calc(100%-1rem)] inset-x-2 top-2'
+        }
+      }, {
+        side: 'right',
+        inset: true,
+        class: {
+          content: 'w-[calc(100%-1rem)] inset-y-2 right-2'
+        }
+      }, {
+        side: 'bottom',
+        inset: true,
+        class: {
+          content: 'max-h-[calc(100%-1rem)] inset-x-2 bottom-2'
+        }
+      }, {
+        side: 'left',
+        inset: true,
+        class: {
+          content: 'w-[calc(100%-1rem)] inset-y-2 left-2'
+        }
+      }]
     },
     tabs: {
       slots: {
