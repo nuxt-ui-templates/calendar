@@ -78,7 +78,7 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
         :groups="groups"
         placeholder="Search events, switch views..."
         close
-        class="h-96"
+        class="h-full sm:h-96"
         @update:model-value="isSearchOpen = false"
         @update:open="isSearchOpen = false"
       >

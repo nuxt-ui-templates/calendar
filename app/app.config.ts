@@ -60,11 +60,12 @@ export default defineAppConfig({
         content: [content, divide]
       },
       variants: {
-        // The same gutter the sidebar and the slideover keep on a phone. Above
-        // `sm` the modal goes back to the one the theme gives it
+        // On a phone the modal is a sheet: the gutter the sidebar and the
+        // slideover keep on every side, and all the height that leaves. Above
+        // `sm` it goes back to the box the theme centers on the viewport
         fullscreen: {
           false: {
-            content: 'w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)]'
+            content: 'w-[calc(100vw-1rem)] h-[calc(100dvh-1rem)] sm:w-[calc(100vw-2rem)] sm:h-auto'
           }
         },
         overlay: {
@@ -74,12 +75,13 @@ export default defineAppConfig({
         }
       },
       // The height cap and the overlay padding are set from a compound of the
-      // theme's own, which lands after anything on a slot or a variant
+      // theme's own, which lands after anything on a slot or a variant. The
+      // cap is off below `sm`, where the height above is the whole rule
       compoundVariants: [{
         fullscreen: false,
         scrollable: false,
         class: {
-          content: 'max-h-[calc(100dvh-1rem)]'
+          content: 'max-h-none'
         }
       }, {
         fullscreen: false,
