@@ -41,15 +41,6 @@ watch([() => route.fullPath, isEventModalOpen, isSearchOpen], () => {
 
       <UTheme :props="{ button: { size: 'sm', class: 'rounded-full!' } }">
         <div class="ms-auto flex items-center gap-1.5">
-          <UButton
-            icon="i-lucide-x"
-            color="neutral"
-            variant="outline"
-            aria-label="Close menu"
-            class="lg:hidden rounded-full"
-            @click="close"
-          />
-
           <UTooltip
             text="New event"
             :kbds="['n']"
@@ -60,6 +51,15 @@ watch([() => route.fullPath, isEventModalOpen, isSearchOpen], () => {
               @click="createEvent()"
             />
           </UTooltip>
+
+          <UButton
+            icon="i-lucide-x"
+            color="neutral"
+            variant="outline"
+            aria-label="Close menu"
+            class="lg:hidden rounded-full"
+            @click="close"
+          />
         </div>
       </UTheme>
     </template>
