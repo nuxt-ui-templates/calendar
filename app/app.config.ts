@@ -62,10 +62,12 @@ export default defineAppConfig({
       variants: {
         // On a phone the modal is a sheet: the gutter the sidebar and the
         // slideover keep on every side, and all the height that leaves. Above
-        // `sm` it goes back to the box the theme centers on the viewport
+        // `sm` it goes back to the box the theme centers on the viewport. The
+        // ring and the shadow are restated here because the theme paints them
+        // from this variant, which lands after the slot they came from
         fullscreen: {
           false: {
-            content: 'w-[calc(100vw-1rem)] h-[calc(100dvh-1rem)] sm:w-[calc(100vw-2rem)] sm:h-auto'
+            content: [ring, 'shadow-2xl w-[calc(100vw-1rem)] h-[calc(100dvh-1rem)] sm:w-[calc(100vw-2rem)] sm:h-auto']
           }
         },
         overlay: {
