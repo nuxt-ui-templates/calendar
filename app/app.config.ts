@@ -60,12 +60,34 @@ export default defineAppConfig({
         content: [content, divide]
       },
       variants: {
+        // The same gutter the sidebar and the slideover keep on a phone. Above
+        // `sm` the modal goes back to the one the theme gives it
+        fullscreen: {
+          false: {
+            content: 'w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)]'
+          }
+        },
         overlay: {
           true: {
             overlay
           }
         }
-      }
+      },
+      // The height cap and the overlay padding are set from a compound of the
+      // theme's own, which lands after anything on a slot or a variant
+      compoundVariants: [{
+        fullscreen: false,
+        scrollable: false,
+        class: {
+          content: 'max-h-[calc(100dvh-1rem)]'
+        }
+      }, {
+        fullscreen: false,
+        scrollable: true,
+        class: {
+          overlay: 'p-2 sm:p-4 sm:py-8'
+        }
+      }]
     },
     popover: {
       slots: {
