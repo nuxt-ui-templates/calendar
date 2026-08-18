@@ -242,28 +242,26 @@ watch(
       <span class="text-sm text-muted text-end w-16">All Day:</span>
       <UCheckbox
         v-model="state.allDay"
-        color="neutral"
         aria-label="All day"
         class="justify-self-start"
       />
 
       <span class="text-sm text-muted text-end w-16">Starts:</span>
-      <div class="flex items-center">
+      <div class="flex items-center gap-2">
         <UInputDate
           ref="startsDate"
           v-model="state.startDate"
           variant="none"
-          :ui="{ base: 'ps-0 py-0' }"
+          :ui="{ base: 'ps-5 pe-0 py-0', leading: 'ps-0' }"
         >
-          <template #trailing>
+          <template #leading>
             <UPopover :reference="startsDate?.inputsRef[3]?.$el">
               <UButton
-                color="neutral"
-                variant="ghost"
+                variant="link"
                 size="xs"
                 icon="i-lucide-calendar"
                 aria-label="Select a start date"
-                class="rounded-xs p-0.5"
+                class="p-0 rounded-xs"
               />
 
               <template #content>
@@ -289,22 +287,21 @@ watch(
 
       <span class="text-sm text-muted text-end w-16">Ends:</span>
       <UFormField name="endDate">
-        <div class="flex items-center">
+        <div class="flex items-center gap-2">
           <UInputDate
             ref="endsDate"
             v-model="state.endDate"
             variant="none"
-            :ui="{ base: 'ps-0 py-0' }"
+            :ui="{ base: 'ps-5 pe-0 py-0', leading: 'ps-0' }"
           >
-            <template #trailing>
+            <template #leading>
               <UPopover :reference="endsDate?.inputsRef[3]?.$el">
                 <UButton
-                  color="neutral"
-                  variant="ghost"
+                  variant="link"
                   size="xs"
                   icon="i-lucide-calendar"
                   aria-label="Select an end date"
-                  class="rounded-xs p-0.5"
+                  class="p-0 rounded-xs"
                 />
 
                 <template #content>
