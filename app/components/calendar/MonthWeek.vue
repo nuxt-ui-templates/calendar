@@ -17,6 +17,7 @@ const props = defineProps<{
 const { pathFor } = useCalendar()
 const { eventsForDay, eventsForDays, pendingRanges } = useCalendarEvents()
 const { draftEvent, onGridPointerdown, onGridDblclick } = useEventDraft()
+const { movingId, preview } = useEventMove()
 
 const days = computed(() => Array.from({ length: 7 }, (_, index) => addDays(props.weekStart, index)))
 const weekEnd = computed(() => addDays(props.weekStart, 7))
@@ -38,10 +39,26 @@ const weekDraft = computed(() => {
     : null
 })
 
+// A chip being moved is dropped from the row it came from and drawn where it
+// would land, which is the only way a move can cross rows. Same bail as the
+// draft, so a row the pointer never reaches keeps its layout
+const weekMoved = computed(() => {
+  const event = preview.value
+
+  return event && new Date(event.start) < weekEnd.value && new Date(event.end) > props.weekStart
+    ? event
+    : null
+})
+
+function others(events: CalendarEvent[]): CalendarEvent[] {
+  return movingId.value ? events.filter(event => event.id !== movingId.value) : events
+}
+
 const lanes = computed(() => layoutAllDay(
   [
-    ...eventsForDays(days.value).filter(event => event.allDay),
-    ...(weekDraft.value?.allDay ? [weekDraft.value] : [])
+    ...others(eventsForDays(days.value)).filter(event => event.allDay),
+    ...(weekDraft.value?.allDay ? [weekDraft.value] : []),
+    ...(weekMoved.value?.allDay ? [weekMoved.value] : [])
   ],
   days.value
 ))
@@ -66,11 +83,13 @@ function covers(bar: AllDayPositionedEvent, index: number): boolean {
 // last free slot becomes the "+N more" button when they overflow
 const cells = computed(() => {
   const drafted = weekDraft.value && !weekDraft.value.allDay ? weekDraft.value : null
+  const moved = weekMoved.value && !weekMoved.value.allDay ? weekMoved.value : null
 
   return days.value.map((day, index) => {
     const timed = [
-      ...eventsForDay(day).filter(event => !event.allDay),
-      ...(drafted && isSameDay(new Date(drafted.start), day) ? [drafted] : [])
+      ...others(eventsForDay(day)).filter(event => !event.allDay),
+      ...(drafted && isSameDay(new Date(drafted.start), day) ? [drafted] : []),
+      ...(moved && isSameDay(new Date(moved.start), day) ? [moved] : [])
     ].sort((a, b) => a.start.localeCompare(b.start))
 
     // One pass over the lanes: bars past the last lane never render, they only

@@ -7,15 +7,20 @@ const props = defineProps<{
 }>()
 
 const { calendars } = useCalendarEvents()
+const { movingId, suppressed, onPointerdown } = useEventMove()
 
 const calendar = computed(() => calendars.value.find(calendar => calendar.id === props.event.calendarId))
 const color = computed(() => calendar.value?.color ?? 'primary')
+
+// Held open or in flight, the chip wears the shade the pointer gives it
+const moving = computed(() => movingId.value === props.event.id)
 </script>
 
 <template>
   <CalendarEventPopover
     v-slot="{ open }"
     :event="event"
+    :disabled="suppressed"
   >
     <button
       v-bind="$attrs"
@@ -26,16 +31,29 @@ const color = computed(() => calendar.value?.color ?? 'primary')
         eventOutlineClasses[color],
         event.allDay
           ? eventBlockClasses[color]
-          : ['text-default hover:bg-(--control-bg)', open && 'bg-(--control-bg)', eventChipCompactClasses[color]]
+          : ['text-default hover:bg-(--control-bg) data-active:bg-(--control-bg)', eventChipCompactClasses[color]]
       ]"
+      :data-active="open || moving || undefined"
       :aria-label="event.allDay ? event.title : `${event.title}, ${formatTime(new Date(event.start))}`"
       @click.stop
+      @pointerdown="onPointerdown($event, event)"
     >
       <span
-        v-if="!event.allDay"
+        v-if="event.allDay"
+        :class="calendarDotClasses[color]"
+        class="rounded-full flex items-center justify-center p-0.5 -mx-0.75"
+      >
+        <UIcon
+          name="i-lucide-calendar"
+          class="size-2.5 shrink-0 text-inverted"
+        />
+      </span>
+      <span
+        v-else
         class="max-lg:hidden size-2 shrink-0 rounded-full"
         :class="calendarDotClasses[color]"
       />
+
       <span class="font-medium truncate">{{ event.title }}</span>
       <!-- `data-time` so a call site in a tight spot can hide it from outside -->
       <span

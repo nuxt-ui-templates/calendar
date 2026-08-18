@@ -1,11 +1,14 @@
 // Static class maps so Tailwind sees the full class names at build time
+// `data-active` is the hover shade held: a chip wears it while its popover is
+// open and while it is being dragged. A variant rather than a second `bg-*`,
+// which would leave the two to sort themselves out in the stylesheet
 export const eventBlockClasses: Record<Calendar['color'], string> = {
-  primary: 'bg-primary/15 hover:bg-primary/25 text-primary border-primary',
-  secondary: 'bg-secondary/15 hover:bg-secondary/25 text-secondary border-secondary',
-  info: 'bg-info/15 hover:bg-info/25 text-info border-info',
-  success: 'bg-success/15 hover:bg-success/25 text-success border-success',
-  warning: 'bg-warning/15 hover:bg-warning/25 text-warning border-warning',
-  error: 'bg-error/15 hover:bg-error/25 text-error border-error'
+  primary: 'bg-primary/15 hover:bg-primary/25 data-active:bg-primary/25 text-primary border-primary',
+  secondary: 'bg-secondary/15 hover:bg-secondary/25 data-active:bg-secondary/25 text-secondary border-secondary',
+  info: 'bg-info/15 hover:bg-info/25 data-active:bg-info/25 text-info border-info',
+  success: 'bg-success/15 hover:bg-success/25 data-active:bg-success/25 text-success border-success',
+  warning: 'bg-warning/15 hover:bg-warning/25 data-active:bg-warning/25 text-warning border-warning',
+  error: 'bg-error/15 hover:bg-error/25 data-active:bg-error/25 text-error border-error'
 }
 
 // The phone month cell has no room for a dot and a time, so below `lg` a

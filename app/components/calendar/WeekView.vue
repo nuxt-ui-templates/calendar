@@ -5,6 +5,7 @@ import { differenceInCalendarDays, isSameDay, isToday } from 'date-fns'
 const { date, range } = useCalendar()
 const { eventsForDay, eventsForDays, status } = useCalendarEvents()
 const { draftEvent, onGridPointerdown, onGridDblclick, registerHost } = useEventDraft()
+const { movingId, preview } = useEventMove()
 
 // A grid the `+` button can draw on, so it knows it does not have to navigate
 // somewhere else first
@@ -46,10 +47,13 @@ const timedEvents = computed(() => {
   ))
 })
 
+// A bar being moved is dropped from where it was and drawn where it would
+// land, the same way the month rows show it
 const allDayEvents = computed(() => layoutAllDay(
   [
-    ...eventsForDays(days.value).filter(event => event.allDay),
-    ...(draftEvent.value?.allDay ? [draftEvent.value] : [])
+    ...eventsForDays(days.value).filter(event => event.allDay && event.id !== movingId.value),
+    ...(draftEvent.value?.allDay ? [draftEvent.value] : []),
+    ...(preview.value?.allDay ? [preview.value] : [])
   ],
   days.value
 ))
