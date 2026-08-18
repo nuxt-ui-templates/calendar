@@ -76,12 +76,13 @@ const _useCalendar = () => {
 
   const isSearchOpen = ref(false)
 
-  // The form popover holds the focus on a switch or a select as readily as on
-  // an input, and `defineShortcuts` only stands down for the inputs. A key
-  // that navigates from there takes the grid out from under the draft
-  function unlessDrafting(handler: () => void) {
+  // The form popover holds the focus on a switch, a select or a date segment
+  // as readily as on an input, and `defineShortcuts` only stands down for the
+  // inputs. A key that navigates from there takes the grid out from under
+  // whatever is being written, a draft on the grid and an event alike
+  function unlessEditing(handler: () => void) {
     return () => {
-      if (!useEventDraft().draft.value) {
+      if (!useEventDraft().draft.value && !useEventEditor().editingId.value) {
         handler()
       }
     }
@@ -95,18 +96,18 @@ const _useCalendar = () => {
         isSearchOpen.value = !isSearchOpen.value
       }
     },
-    t: unlessDrafting(() => navigateTo(pathFor(todayDate()))),
-    d: unlessDrafting(() => navigateTo(pathFor(date.value, 'day'))),
-    w: unlessDrafting(() => navigateTo(pathFor(date.value, 'week'))),
-    m: unlessDrafting(() => navigateTo(pathFor(date.value, 'month'))),
+    t: unlessEditing(() => navigateTo(pathFor(todayDate()))),
+    d: unlessEditing(() => navigateTo(pathFor(date.value, 'day'))),
+    w: unlessEditing(() => navigateTo(pathFor(date.value, 'week'))),
+    m: unlessEditing(() => navigateTo(pathFor(date.value, 'month'))),
     // The draft composable reads this one, so it is resolved inside the
     // handler rather than at setup, where the two would wait on each other
-    n: unlessDrafting(() => useEventDraft().createAtAnchor()),
-    arrowleft: unlessDrafting(() => {
+    n: unlessEditing(() => useEventDraft().createAtAnchor()),
+    arrowleft: unlessEditing(() => {
       setDirection('left')
       navigateTo(pathFor(prevDate.value))
     }),
-    arrowright: unlessDrafting(() => {
+    arrowright: unlessEditing(() => {
       setDirection('right')
       navigateTo(pathFor(nextDate.value))
     })
