@@ -1,5 +1,5 @@
-import { CalendarDate, getLocalTimeZone, Time, toCalendarDateTime, today } from '@internationalized/date'
-import { addDays, startOfMonth, startOfWeek } from 'date-fns'
+import { CalendarDate, getLocalTimeZone, parseDate, Time, toCalendarDateTime, today } from '@internationalized/date'
+import { addDays, lightFormat, startOfMonth, startOfWeek } from 'date-fns'
 
 export function toCalendarDate(date: Date): CalendarDate {
   return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
@@ -33,6 +33,30 @@ export function todayDate(): CalendarDate {
 // it stays correct across DST and costs less than a formatter
 export function dayKey(date: Date): string {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+}
+
+// The day a grid cell stands for, as the `data-date` a pointer gesture reads
+// back off it. `dayKey` is the cheaper bucket key and does not parse back
+export function isoDate(date: Date): string {
+  return lightFormat(date, 'yyyy-MM-dd')
+}
+
+export function dateFromISO(iso: string): Date {
+  return toDate(parseDate(iso))
+}
+
+// The day under a point, from whichever cell is topmost there. Hit-testing
+// live rather than measuring the cells upfront is what lets a drag reach a
+// month row the virtualizer only mounted once the pointer got near it
+export function dateAtPoint(x: number, y: number): Date | null {
+  for (const element of document.elementsFromPoint(x, y)) {
+    const iso = (element as HTMLElement).dataset?.date
+    if (iso) {
+      return dateFromISO(iso)
+    }
+  }
+
+  return null
 }
 
 // Ranges are [start, end) so the end boundary is the first excluded instant

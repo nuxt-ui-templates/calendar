@@ -6,6 +6,13 @@ export const SNAP_MINUTES = 15
 // The painted minimum, not a duration floor: a 15-minute event (the resize
 // snap is the real minimum) still draws at this height to stay readable
 export const MIN_EVENT_MINUTES = 30
+export const DAY_MINUTES = 24 * 60
+// How far the pointer has to travel before a gesture counts as a drag rather
+// than a click, shared by the move/resize drag and the create drag
+export const DRAG_THRESHOLD = 5
+// The id the draft carries through the layout, so a view can tell the event
+// being drawn apart from a real one
+export const DRAFT_EVENT_ID = 'draft'
 
 export interface PositionedEvent {
   event: CalendarEvent
@@ -119,4 +126,31 @@ export function layoutAllDay(events: CalendarEvent[], days: Date[]): AllDayPosit
 
 export function snapMinutes(minutes: number): number {
   return Math.round(minutes / SNAP_MINUTES) * SNAP_MINUTES
+}
+
+export function minutesFromOffset(px: number): number {
+  return px / PX_PER_MINUTE
+}
+
+// The minute of the day a pointer sits at inside a day column, snapped and
+// clamped to the day. A click floors to the slot it landed in, a drag rounds
+// to the edge it is closest to
+export function minutesInColumn(clientY: number, rect: DOMRect, mode: 'floor' | 'nearest' = 'nearest'): number {
+  const raw = minutesFromOffset(clientY - rect.top)
+  const snapped = mode === 'floor' ? Math.floor(raw / SNAP_MINUTES) * SNAP_MINUTES : snapMinutes(raw)
+
+  return Math.min(DAY_MINUTES, Math.max(0, snapped))
+}
+
+// The geometry an event block and the draft ghost share, the block adds its
+// own drag transform on top
+export function eventBlockStyle(positioned: PositionedEvent, height = positioned.height) {
+  return {
+    // Clears the hour lines it starts and ends on by a pixel, the same gap it
+    // leaves on both inline edges, so the grid shows between blocks
+    top: `${positioned.top + 2}px`,
+    height: `${height - 3}px`,
+    insetInlineStart: `calc(${positioned.left}% + 1px)`,
+    width: `calc(${positioned.width}% - 2px)`
+  }
 }

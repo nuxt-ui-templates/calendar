@@ -1,7 +1,5 @@
 import { addDays, addMinutes } from 'date-fns'
 
-const DRAG_THRESHOLD = 5
-
 // Pointer-capture drag to move (across days) or resize (bottom handle) an
 // event block, snapped to 15-minute increments. The block itself is
 // translated as a ghost preview, the real update only happens on drop.
@@ -68,7 +66,7 @@ export function useEventDrag(
       suppressed.value = true
     }
 
-    deltaMinutes.value = snapMinutes(dy / PX_PER_MINUTE)
+    deltaMinutes.value = snapMinutes(minutesFromOffset(dy))
 
     if (mode.value === 'move' && columnIndex !== -1) {
       const targetIndex = columnRects.findIndex(rect => pointerEvent.clientX >= rect.left && pointerEvent.clientX < rect.right)

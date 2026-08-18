@@ -28,3 +28,14 @@ export const calendarDotClasses: Record<Calendar['color'], string> = {
   warning: 'bg-warning',
   error: 'bg-error'
 }
+
+// The focus ring the button theme paints: the colour at a quarter, which only
+// gets a width once `focus-visible` gives the outline one
+export const eventOutlineClasses: Record<Calendar['color'], string> = {
+  primary: 'outline-primary/25',
+  secondary: 'outline-secondary/25',
+  info: 'outline-info/25',
+  success: 'outline-success/25',
+  warning: 'outline-warning/25',
+  error: 'outline-error/25'
+}

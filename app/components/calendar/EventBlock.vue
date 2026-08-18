@@ -32,12 +32,7 @@ const style = computed(() => {
     : props.positioned.height
 
   return {
-    // Clears the hour lines it starts and ends on by a pixel, the same gap it
-    // leaves on both inline edges, so the grid shows between blocks
-    top: `${props.positioned.top + 2}px`,
-    height: `${height - 3}px`,
-    insetInlineStart: `calc(${props.positioned.left}% + 1px)`,
-    width: `calc(${props.positioned.width}% - 2px)`,
+    ...eventBlockStyle(props.positioned, height),
     transform: dragging.value && mode.value === 'move'
       ? `translate(${deltaX.value}px, ${deltaMinutes.value * PX_PER_MINUTE}px)`
       : undefined
@@ -64,10 +59,11 @@ const compact = computed(() => props.positioned.height < 40)
     <button
       type="button"
       data-event
-      class="absolute flex flex-col items-start overflow-hidden rounded-xs px-3 py-1 text-xs text-start transition-colors select-none touch-none"
+      class="absolute flex flex-col items-start overflow-hidden rounded-xs px-3 py-1 text-xs text-start transition-colors select-none touch-none focus-visible:outline-3"
       :class="[
         eventBlockClasses[calendar?.color ?? 'primary'],
-        dragging ? 'z-20 ring-2 ring-inverted/25 shadow-lg' : 'z-5'
+        eventOutlineClasses[calendar?.color ?? 'primary'],
+        dragging ? 'z-20 shadow' : 'z-5'
       ]"
       :style="style"
       :aria-label="`${event.title}, ${previewTimes}`"
@@ -82,7 +78,7 @@ const compact = computed(() => props.positioned.height < 40)
         :class="calendarDotClasses[calendar?.color ?? 'primary']"
       />
 
-      <span class="w-full font-bold truncate">{{ event.title }}</span>
+      <span class="w-full font-medium truncate">{{ event.title }}</span>
       <span
         v-if="!compact || dragging"
         class="w-full truncate opacity-80 tabular-nums"
