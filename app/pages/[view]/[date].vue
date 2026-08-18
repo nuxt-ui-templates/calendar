@@ -65,7 +65,7 @@ function onViewChange(value: string | number) {
         <UButton
           icon="i-lucide-menu"
           color="neutral"
-          variant="outline"
+          variant="soft"
           size="sm"
           aria-label="Open menu"
           class="lg:hidden shrink-0 rounded-full"
@@ -118,7 +118,7 @@ function onViewChange(value: string | number) {
           <UBadge
             icon="i-lucide-cloud-off"
             color="warning"
-            variant="subtle"
+            variant="soft"
             :label="queue.length ? `Offline (${queue.length})` : 'Offline'"
           />
         </UTooltip>

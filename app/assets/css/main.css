@@ -22,6 +22,12 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+
+  /* Selected text carries the accent instead of the browser's own blue, light
+     enough that the text keeps its colour through it */
+  ::selection {
+    background-color: color-mix(in oklab, var(--ui-primary) 20%, transparent);
+  }
 }
 
 /* Unlayered, which is what lets `--ui-radius` land: Nuxt UI declares it in the
@@ -44,6 +50,19 @@
   --glass-saturate: 180%;
   --glass-brightness: 105%;
   --glass-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+
+  /* The fill for a control standing on glass. The soft variants land on a
+     full `bg-elevated`, in the base or on hover depending on the component,
+     which covers the pane the control is on and takes the blur with it. These
+     carry their own alpha instead, the way the hairlines in `app.config.ts`
+     do */
+  --control-bg: rgb(0 0 0 / 0.05);
+  --control-bg-hover: rgb(0 0 0 / 0.09);
+
+  /* A well cut into the glass, for a track the controls inside it have to
+     read as raised out of. It runs darker in both modes, where `--control-bg`
+     goes the other way and lifts off the pane */
+  --well-bg: rgb(0 0 0 / 0.05);
 }
 
 .dark {
@@ -51,6 +70,13 @@
   --glass-blur: 28px;
   --glass-saturate: 150%;
   --glass-brightness: 110%;
+
+  --control-bg: rgb(255 255 255 / 0.06);
+  --control-bg-hover: rgb(255 255 255 / 0.10);
+
+  /* Deeper than the light one: the pane behind it is already dark, so the
+     same alpha would not read as a well at all */
+  --well-bg: rgb(0 0 0 / 0.22);
 }
 
 /* Frosted over to fully solid */

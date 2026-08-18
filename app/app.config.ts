@@ -11,7 +11,7 @@ const border = 'border-black/8 dark:border-white/10'
 // as painted on once there is a backdrop showing through behind it
 const divide = 'divide-black/8 dark:divide-white/8'
 // A translucent overlay that fills the viewport
-const overlay = 'backdrop-blur-sm bg-elevated/50'
+const overlay = 'backdrop-blur-sm bg-(--glass-bg)'
 
 export default defineAppConfig({
   ui: {
@@ -24,11 +24,24 @@ export default defineAppConfig({
         color: 'neutral',
         variant: 'outline',
         class: ring
+      }, {
+        color: 'neutral',
+        variant: 'soft',
+        class: 'bg-(--control-bg) hover:bg-(--control-bg-hover) active:bg-(--control-bg-hover) disabled:bg-(--control-bg) aria-disabled:bg-(--control-bg)'
+      }, {
+        color: 'neutral',
+        variant: 'ghost',
+        class: 'hover:bg-(--control-bg) active:bg-(--control-bg)'
       }]
     },
     checkbox: {
       slots: {
-        base: 'rounded-xs'
+        base: ['rounded-xs', ring]
+      }
+    },
+    chip: {
+      slots: {
+        base: 'ring-0'
       }
     },
     commandPalette: {
@@ -54,6 +67,39 @@ export default defineAppConfig({
       slots: {
         content
       }
+    },
+    kbd: {
+      compoundVariants: [{
+        color: 'neutral',
+        variant: 'soft',
+        class: 'bg-(--control-bg)'
+      }]
+    },
+    inputDate: {
+      slots: {
+        base: 'gap-0!',
+        segment: 'w-auto! px-0.5'
+      },
+      compoundVariants: [{
+        color: 'primary',
+        variant: 'none',
+        class: {
+          segment: 'focus:bg-primary focus:text-white'
+        }
+      }]
+    },
+    inputTime: {
+      slots: {
+        base: 'gap-0!',
+        segment: 'w-auto! px-0.5'
+      },
+      compoundVariants: [{
+        color: 'primary',
+        variant: 'none',
+        class: {
+          segment: 'focus:bg-primary focus:text-white'
+        }
+      }]
     },
     modal: {
       slots: {
@@ -93,9 +139,33 @@ export default defineAppConfig({
         }
       }]
     },
+    navigationMenu: {
+      slots: {
+        link: 'hover:before:bg-(--control-bg-hover)'
+      },
+      compoundVariants: [{
+        disabled: false,
+        active: false,
+        variant: 'pill',
+        class: {
+          link: 'hover:before:bg-(--control-bg)'
+        }
+      }]
+    },
     popover: {
       slots: {
         content
+      }
+    },
+    select: {
+      slots: {
+        content,
+        item: 'data-highlighted:not-data-disabled:before:bg-(--control-bg)'
+      },
+      variants: {
+        variant: {
+          soft: 'bg-(--control-bg) hover:bg-(--control-bg-hover) focus:bg-(--control-bg-hover) disabled:bg-(--control-bg)'
+        }
       }
     },
     sidebar: {
@@ -155,12 +225,12 @@ export default defineAppConfig({
       },
       variants: {
         // Same path as the theme's own pill classes, or `rounded-lg` and
-        // `rounded-md` would come later in the merge and win. The track runs
-        // darker than the chrome it sits on so the indicator, which is a plain
-        // `bg-default` surface, reads as raised out of it rather than sunk in
+        // `rounded-md` would come later in the merge and win. The track is a
+        // well cut into the chrome it sits on, so the indicator, which is a
+        // plain opaque surface, reads as raised out of it rather than sunk in
         variant: {
           pill: {
-            list: ['rounded-full gap-0.5 bg-elevated dark:bg-default', ring],
+            list: ['rounded-full gap-0.5 bg-(--well-bg)', ring],
             indicator: 'rounded-full'
           }
         }
@@ -172,14 +242,14 @@ export default defineAppConfig({
         color: 'neutral',
         variant: 'pill',
         class: {
-          indicator: 'bg-default dark:bg-elevated',
+          indicator: 'bg-white dark:bg-(--control-bg) shadow',
           trigger: [
             'data-[state=active]:text-highlighted',
             'hover:data-[state=inactive]:not-disabled:bg-(--glass-bg)',
             // The theme paints the active pill on `before` whenever the list
             // renders without an indicator, so it gets the same surface and
             // the same radius as the one the indicator draws
-            'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-elevated',
+            'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-(--control-bg)',
             'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:rounded-full'
           ]
         }
