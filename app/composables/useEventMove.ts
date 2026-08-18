@@ -33,7 +33,7 @@ const _useEventMove = () => {
     }
   })
 
-  let gesture: { event: CalendarEvent, x: number, y: number, origin: Date, current: Date, moved: boolean } | null = null
+  let gesture: { event: CalendarEvent, x: number, y: number, origin: Date, current: Date, moved: boolean, cancelled: boolean } | null = null
 
   function bind() {
     document.addEventListener('pointermove', onPointermove)
@@ -62,9 +62,15 @@ const _useEventMove = () => {
   }
 
   function onPointerdown(pointerEvent: PointerEvent, event: CalendarEvent) {
-    // A touch drag has to stay a scroll, and the second press of a double
-    // click must not start one either
-    if (pointerEvent.button !== 0 || pointerEvent.detail > 1 || pointerEvent.pointerType === 'touch') {
+    // A touch drag has to stay a scroll
+    if (pointerEvent.button !== 0 || pointerEvent.pointerType === 'touch') {
+      return
+    }
+
+    // A chip listed in a "+N more" popover is drawn over the grid rather than
+    // in it, and `dateAtPoint` hit-tests through the popover to whichever cell
+    // happens to sit behind it. There is no day under that pointer to move to
+    if ((pointerEvent.target as HTMLElement).closest('[data-reka-popper-content-wrapper]')) {
       return
     }
 
@@ -75,13 +81,13 @@ const _useEventMove = () => {
       return
     }
 
-    gesture = { event, x: pointerEvent.clientX, y: pointerEvent.clientY, origin, current: origin, moved: false }
+    gesture = { event, x: pointerEvent.clientX, y: pointerEvent.clientY, origin, current: origin, moved: false, cancelled: false }
 
     bind()
   }
 
   function onPointermove(pointerEvent: PointerEvent) {
-    if (!gesture) {
+    if (!gesture || gesture.cancelled) {
       return
     }
 
@@ -126,8 +132,10 @@ const _useEventMove = () => {
   useEventListener('keydown', (keyboardEvent: KeyboardEvent) => {
     // Cancels the move but holds on to the gesture: the pointer is still down,
     // and its release is both what clears the suppression and what unbinds the
-    // listeners that would carry it
+    // listeners that would carry it. Cancelled rather than un-moved, or the
+    // next move would clear the travel threshold again and pick it right back up
     if (keyboardEvent.key === 'Escape' && gesture?.moved) {
+      gesture.cancelled = true
       gesture.moved = false
       source.value = null
       deltaDays.value = 0
