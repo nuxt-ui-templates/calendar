@@ -205,9 +205,10 @@ const _useEventDraft = () => {
   }
 
   function onGridPointerdown(event: PointerEvent, target: GridTarget) {
-    // A touch drag has to stay a scroll, and the second press of a double
-    // click must not start a drag racing it
-    if (event.button !== 0 || event.detail > 1 || event.pointerType === 'touch' || !onEmptySpace(event)) {
+    // A touch drag has to stay a scroll. Nothing stands the second press of a
+    // double click down: `PointerEvent.detail` is 0 by spec, and the ghost the
+    // double click draws replaces whatever that press managed to start
+    if (event.button !== 0 || event.pointerType === 'touch' || !onEmptySpace(event)) {
       return
     }
 
