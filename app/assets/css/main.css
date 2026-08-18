@@ -51,17 +51,18 @@
   --glass-brightness: 105%;
   --glass-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
 
-  /* The fill for a control standing on glass. The soft variants land on a
-     full `bg-elevated`, in the base or on hover depending on the component,
-     which covers the pane the control is on and takes the blur with it. These
-     carry their own alpha instead, the way the hairlines in `app.config.ts`
-     do */
+  /* The scrim hazes where the surfaces over it frost. A variable rather than
+     `backdrop-blur-sm` so it clears with the rest of the material below */
+  --overlay-blur: 8px;
+
+  /* A control standing on glass. The `bg-elevated` its variants would
+     otherwise resolve to is opaque, and covers the pane it sits on */
   --control-bg: rgb(0 0 0 / 0.05);
   --control-bg-hover: rgb(0 0 0 / 0.09);
 
-  /* A well cut into the glass, for a track the controls inside it have to
-     read as raised out of. It runs darker in both modes, where `--control-bg`
-     goes the other way and lifts off the pane */
+  /* A well cut into the glass, for a track the controls in it read as raised
+     out of. Black in both modes, where `--control-bg` turns white on dark
+     glass and matches this on light */
   --well-bg: rgb(0 0 0 / 0.05);
 }
 
@@ -85,6 +86,7 @@
   .dark {
     --glass-bg: var(--ui-bg);
     --glass-blur: 0px;
+    --overlay-blur: 0px;
   }
 }
 

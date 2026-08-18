@@ -10,8 +10,10 @@ const border = 'border-black/8 dark:border-white/10'
 // Rules inside glass. `divide-default` is an opaque border colour, which reads
 // as painted on once there is a backdrop showing through behind it
 const divide = 'divide-black/8 dark:divide-white/8'
-// A translucent overlay that fills the viewport
-const overlay = 'backdrop-blur-sm bg-(--glass-bg)'
+// A translucent overlay that fills the viewport. It hazes rather than frosts,
+// so it carries a blur of its own instead of the material's, and reads it from
+// a variable so turning transparency down clears it along with everything else
+const overlay = 'backdrop-blur-(--overlay-blur) bg-(--glass-bg)'
 
 export default defineAppConfig({
   ui: {
@@ -226,8 +228,8 @@ export default defineAppConfig({
       variants: {
         // Same path as the theme's own pill classes, or `rounded-lg` and
         // `rounded-md` would come later in the merge and win. The track is a
-        // well cut into the chrome it sits on, so the indicator, which is a
-        // plain opaque surface, reads as raised out of it rather than sunk in
+        // well cut into the chrome it sits on, so the indicator riding in it
+        // reads as raised rather than sunk
         variant: {
           pill: {
             list: ['rounded-full gap-0.5 bg-(--well-bg)', ring],
@@ -236,8 +238,9 @@ export default defineAppConfig({
         }
       },
       // After the theme's color compound, which paints the indicator
-      // `bg-inverted` and flips the active text. The raised pill is a plain
-      // surface instead, so the active trigger keeps its text color
+      // `bg-inverted` and flips the active text. This one is a lighter surface
+      // than the track with a shadow under it, so the active trigger keeps its
+      // text color
       compoundVariants: [{
         color: 'neutral',
         variant: 'pill',
@@ -247,8 +250,8 @@ export default defineAppConfig({
             'data-[state=active]:text-highlighted',
             'hover:data-[state=inactive]:not-disabled:bg-(--glass-bg)',
             // The theme paints the active pill on `before` whenever the list
-            // renders without an indicator, so it gets the same surface and
-            // the same radius as the one the indicator draws
+            // renders without an indicator, so it stands in for the one the
+            // indicator draws, at the same radius
             'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-(--control-bg)',
             'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:rounded-full'
           ]
