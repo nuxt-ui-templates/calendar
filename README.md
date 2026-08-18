@@ -20,12 +20,13 @@ Apple Calendar-inspired application with day, week and month views, drag and dro
 - **Day, week and month views** - Date-based routing (`/day/2026-08-11`, `/week/2026-08-11`, `/month/2026-08-11`) with `definePageMeta({ validate })` turning invalid views or dates into a 404
 - **Infinite month scrolling** - Virtualized with the [`ScrollArea`](https://ui.nuxt.com/docs/components/scroll-area) component, streaming events in aligned 6-week chunks while the URL and title follow as you scroll
 - **Drag and drop** - Move events across days, drag the bottom edge to resize, snapped to 15 minutes
+- **Inline event editing** - Double-click or drag the grid to draw an event where you point, across days for an all-day one, then fill it in from a popover anchored to it, the same form an existing event opens into
 - **Optimistic mutations** - Creations, edits and deletions apply instantly to a client overlay re-applied over every server response, with rollback and a toast on failure
 - **Offline support** - Mutations queue while offline and replay on reconnect thanks to upsert and idempotent server semantics, with an indicator in the header
 - **Payload caching** - Each visible range is a keyed `useFetch` with `getCachedData`, adjacent ranges are warmed in the background so a prev/next click never waits on the network
 - **View transitions** - `experimental.viewTransition` slides the grid left or right on prev/next navigation
 - **Multiple calendars** - Color coding with cookie-persisted visibility toggles, plus a mini calendar with hover prefetching
-- **Isomorphic validation** - A single zod schema in `shared/` validates the form on the client and the request body in the Nitro route
+- **Shared contract** - The event types, the zod schema the Nitro routes validate against and the floating local datetime helper both sides write with all live in `shared/`, so client and server never disagree on what a date string means
 - **Keyboard shortcuts** - `t` for today, `d`/`w`/`m` to switch views, `n` for a new event, arrow keys to navigate
 - **Responsive layout** - Small screens show a 3-day window and the sidebar becomes a slideover
 
