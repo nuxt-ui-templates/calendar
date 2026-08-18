@@ -63,7 +63,7 @@ const compact = computed(() => props.positioned.height < 40)
       :class="[
         eventBlockClasses[calendar?.color ?? 'primary'],
         eventOutlineClasses[calendar?.color ?? 'primary'],
-        dragging ? 'z-20 shadow' : 'z-5'
+        dragging ? 'z-20' : 'z-5'
       ]"
       :style="style"
       :aria-label="`${event.title}, ${previewTimes}`"

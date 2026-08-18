@@ -84,6 +84,7 @@ const items = computed<ContextMenuItem[]>(() => [{
       v-else
       :items="items"
       :disabled="disabled"
+      size="sm"
     >
       <div class="contents">
         <!-- The event opens straight into the form the draft uses, so there is

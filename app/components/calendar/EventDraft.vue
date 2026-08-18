@@ -88,7 +88,7 @@ watch(pendingScroll, reveal)
         v-bind="$attrs"
         data-draft
         aria-hidden="true"
-        class="select-none shadow-lg transition-colors"
+        class="select-none transition-colors"
         :class="[
           eventBlockClasses[color],
           variant === 'block'
