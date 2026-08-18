@@ -3,28 +3,6 @@ import { z } from 'zod'
 import { addDays, subMilliseconds } from 'date-fns'
 import { CalendarDate, Time } from '@internationalized/date'
 
-// Both ends carry a date of their own, the way Apple Calendar states them:
-// the span is edited from the end rather than riding along behind the start,
-// and an end that has walked past midnight says so instead of being inferred.
-// No `min(1)` on the title, an unnamed event is called what the ghost calls it
-const formSchema = z.object({
-  title: z.string().max(100),
-  calendarId: z.string().min(1, 'Calendar is required'),
-  startDate: z.instanceof(CalendarDate, { error: 'Start date is required' }),
-  startTime: z.instanceof(Time, { error: 'Start time is required' }),
-  endDate: z.instanceof(CalendarDate, { error: 'End date is required' }),
-  endTime: z.instanceof(Time, { error: 'End time is required' }),
-  allDay: z.boolean(),
-  description: z.string().max(1000).optional()
-}).refine(data => data.allDay
-  ? data.endDate.compare(data.startDate) >= 0
-  : toDateTime(data.endDate, data.endTime) > toDateTime(data.startDate, data.startTime), {
-  error: 'Ends before it starts',
-  path: ['endDate']
-})
-
-type FormSchema = z.output<typeof formSchema>
-
 // One request per pause rather than one per keystroke. The popover unmounts
 // the form when it closes, which flushes whatever is still waiting
 const SAVE_DELAY = 200
@@ -43,6 +21,29 @@ const emit = defineEmits<{
 }>()
 
 const { calendars } = useCalendarEvents()
+
+// Both ends carry a date of their own, the way Apple Calendar states them:
+// the span is edited from the end rather than riding along behind the start,
+// and an end that has walked past midnight says so instead of being inferred.
+// An event keeps its name, clearing the field is a slip rather than a rename;
+// a draft has none yet and takes the one its ghost is showing
+const formSchema = z.object({
+  title: props.event ? z.string().min(1, 'Title is required').max(100) : z.string().max(100),
+  calendarId: z.string().min(1, 'Calendar is required'),
+  startDate: z.instanceof(CalendarDate, { error: 'Start date is required' }),
+  startTime: z.instanceof(Time, { error: 'Start time is required' }),
+  endDate: z.instanceof(CalendarDate, { error: 'End date is required' }),
+  endTime: z.instanceof(Time, { error: 'End time is required' }),
+  allDay: z.boolean(),
+  description: z.string().max(1000).optional()
+}).refine(data => data.allDay
+  ? data.endDate.compare(data.startDate) >= 0
+  : toDateTime(data.endDate, data.endTime) > toDateTime(data.startDate, data.startTime), {
+  error: 'Ends before it starts',
+  path: ['endDate']
+})
+
+type FormSchema = z.output<typeof formSchema>
 
 function initialState(): FormSchema {
   const source = props.event ?? props.draft
@@ -127,10 +128,16 @@ watch(
     }
 
     if (props.event) {
+      // Mid-retype, the field is empty for a keystroke or two. The event holds
+      // the name it had until there is one to replace it with
+      if (!state.title.trim()) {
+        return
+      }
+
       queue({
         ...props.event,
         calendarId: state.calendarId,
-        title: state.title || DEFAULT_TITLE,
+        title: state.title,
         description: state.description || undefined,
         start: toLocalISO(start),
         end: toLocalISO(end),

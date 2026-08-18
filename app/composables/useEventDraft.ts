@@ -299,8 +299,11 @@ const _useEventDraft = () => {
 
   // Losing the ghost is how the draft learns it has nowhere left to live:
   // navigating, switching view, the month virtualizer recycling its row, the
-  // small-screen week window sliding past its day. Watching the route would
-  // not do, the month view rewrites it on every scroll
+  // small-screen week window sliding past its day, or a date typed into the
+  // form that lands outside the range on screen. Watching the route would not
+  // do, the month view rewrites it on every scroll. It saves rather than
+  // discards, on the same reading as closing the form: only Escape throws a
+  // draft away, so a title typed into one is never lost to a keystroke
   watch(anchors, (count) => {
     if (count || !draft.value || !everAnchored) {
       return
@@ -310,7 +313,7 @@ const _useEventDraft = () => {
     // after it, so its replacement gets a tick to turn up
     nextTick(() => {
       if (!anchors.value) {
-        discardDraft()
+        commitDraft()
       }
     })
   })

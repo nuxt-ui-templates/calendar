@@ -76,6 +76,17 @@ const _useCalendar = () => {
 
   const isSearchOpen = ref(false)
 
+  // The form popover holds the focus on a switch or a select as readily as on
+  // an input, and `defineShortcuts` only stands down for the inputs. A key
+  // that navigates from there takes the grid out from under the draft
+  function unlessDrafting(handler: () => void) {
+    return () => {
+      if (!useEventDraft().draft.value) {
+        handler()
+      }
+    }
+  }
+
   defineShortcuts({
     // Enabled while typing so it also closes the palette from its own input
     meta_k: {
@@ -84,29 +95,21 @@ const _useCalendar = () => {
         isSearchOpen.value = !isSearchOpen.value
       }
     },
-    t: () => navigateTo(pathFor(todayDate())),
-    d: () => navigateTo(pathFor(date.value, 'day')),
-    w: () => navigateTo(pathFor(date.value, 'week')),
-    m: () => navigateTo(pathFor(date.value, 'month')),
-    // Resolved here rather than above: the draft composable reads this one, so
-    // taking it at setup would have the two of them waiting on each other
-    n: () => {
-      const { draft, createAtAnchor } = useEventDraft()
-
-      // A switch or the calendar select holds the focus without counting as
-      // an input, and `n` there would throw away what is being written
-      if (!draft.value) {
-        createAtAnchor()
-      }
-    },
-    arrowleft: () => {
+    t: unlessDrafting(() => navigateTo(pathFor(todayDate()))),
+    d: unlessDrafting(() => navigateTo(pathFor(date.value, 'day'))),
+    w: unlessDrafting(() => navigateTo(pathFor(date.value, 'week'))),
+    m: unlessDrafting(() => navigateTo(pathFor(date.value, 'month'))),
+    // The draft composable reads this one, so it is resolved inside the
+    // handler rather than at setup, where the two would wait on each other
+    n: unlessDrafting(() => useEventDraft().createAtAnchor()),
+    arrowleft: unlessDrafting(() => {
       setDirection('left')
       navigateTo(pathFor(prevDate.value))
-    },
-    arrowright: () => {
+    }),
+    arrowright: unlessDrafting(() => {
       setDirection('right')
       navigateTo(pathFor(nextDate.value))
-    }
+    })
   })
 
   return {

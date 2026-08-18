@@ -319,6 +319,13 @@ const _useCalendarEvents = () => {
   }
 
   function updateEvent(event: CalendarEvent) {
+    // `PATCH` upserts, so an update that lands after the delete would put the
+    // event back in the store. The overlay hides it either way, which is what
+    // makes it a reload away rather than something anyone would notice
+    if (overlay.value.deleted.includes(event.id)) {
+      return
+    }
+
     mutate(event.id, () => {
       if (overlay.value.created[event.id]) {
         overlay.value.created[event.id] = event
