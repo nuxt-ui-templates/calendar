@@ -36,8 +36,6 @@ useHead({
         class="flex-1"
       />
 
-      <CalendarEventModal />
-
       <AppSearch />
     </div>
   </UApp>

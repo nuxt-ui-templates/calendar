@@ -45,8 +45,6 @@ useSeoMeta({
 
       <NuxtPage />
 
-      <CalendarEventModal />
-
       <AppSearch />
     </div>
   </UApp>

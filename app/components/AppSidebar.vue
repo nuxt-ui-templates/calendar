@@ -1,5 +1,6 @@
 <script setup lang="ts">
-const { createEvent, isSearchOpen, isEventModalOpen, isSidebarOpen } = useCalendar()
+const { isSearchOpen, isSidebarOpen } = useCalendar()
+const { draft, createAtAnchor } = useEventDraft()
 
 const route = useRoute()
 
@@ -9,7 +10,7 @@ const isMobile = useMediaQuery('(max-width: 1023px)')
 
 // Everything the menu offers takes over the screen on a phone, so it steps
 // out of the way once one of them is on its way in
-watch([() => route.fullPath, isEventModalOpen, isSearchOpen], () => {
+watch([() => route.fullPath, () => !!draft.value, isSearchOpen], () => {
   if (isMobile.value) {
     isSidebarOpen.value = false
   }
@@ -48,14 +49,14 @@ watch([() => route.fullPath, isEventModalOpen, isSearchOpen], () => {
             <UButton
               icon="i-lucide-plus"
               aria-label="New event"
-              @click="createEvent()"
+              @click="createAtAnchor()"
             />
           </UTooltip>
 
           <UButton
             icon="i-lucide-x"
             color="neutral"
-            variant="outline"
+            variant="soft"
             aria-label="Close menu"
             class="lg:hidden rounded-full"
             @click="close"
@@ -75,11 +76,11 @@ watch([() => route.fullPath, isEventModalOpen, isSearchOpen], () => {
         <span class="hidden lg:flex items-center gap-0.5 ms-auto">
           <UKbd
             value="meta"
-            variant="subtle"
+            variant="soft"
           />
           <UKbd
             value="k"
-            variant="subtle"
+            variant="soft"
           />
         </span>
       </template>

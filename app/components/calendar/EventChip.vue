@@ -13,13 +13,21 @@ const color = computed(() => calendar.value?.color ?? 'primary')
 </script>
 
 <template>
-  <CalendarEventPopover :event="event">
+  <CalendarEventPopover
+    v-slot="{ open }"
+    :event="event"
+  >
     <button
       v-bind="$attrs"
       type="button"
       data-event
-      class="flex items-center gap-1.5 min-w-0 rounded-full px-1.5 py-0.5 text-xs text-start transition-colors"
-      :class="event.allDay ? eventBlockClasses[color] : ['text-default hover:bg-elevated', eventChipCompactClasses[color]]"
+      class="select-none flex items-center gap-1.5 min-w-0 rounded-full px-1.5 py-0.5 text-xs text-start transition-colors focus-visible:outline-3"
+      :class="[
+        eventOutlineClasses[color],
+        event.allDay
+          ? eventBlockClasses[color]
+          : ['text-default hover:bg-(--control-bg)', open && 'bg-(--control-bg)', eventChipCompactClasses[color]]
+      ]"
       :aria-label="event.allDay ? event.title : `${event.title}, ${formatTime(new Date(event.start))}`"
       @click.stop
     >

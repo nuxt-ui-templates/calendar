@@ -32,6 +32,11 @@ const GRID_TOP = CHROME_HEIGHT - DOCK_TOP
 
 const { date, pathFor, visibleMonth, monthLabelsVisible } = useCalendar()
 const { loadRange } = useCalendarEvents()
+const { draft, pendingScroll, registerHost } = useEventDraft()
+
+// A grid the `+` button can draw on, so it knows it does not have to navigate
+// somewhere else first
+registerHost()
 
 const scrollElement = shallowRef<Element | null>(null)
 
@@ -95,6 +100,17 @@ function loadVisibleChunks() {
     loadRange({ start, end: addWeeks(start, CHUNK_WEEKS) })
   }
 }
+
+// The `+` button can draw on a week the virtualizer has not mounted, and a
+// ghost that never renders cannot scroll itself into view
+watch(pendingScroll, (pending) => {
+  if (!pending || !draft.value) {
+    return
+  }
+
+  getVirtualizer()?.scrollToIndex(indexOf(draft.value.start), { align: 'center', behavior: 'smooth' })
+  loadVisibleChunks()
+})
 
 // Jumps dock the week containing the 1st at the top, so the target month's
 // label lands in the header like Apple Calendar

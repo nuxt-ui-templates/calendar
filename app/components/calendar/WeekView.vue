@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { breakpointsTailwind } from '@vueuse/core'
-import { differenceInCalendarDays, isToday } from 'date-fns'
+import { differenceInCalendarDays, isSameDay, isToday } from 'date-fns'
 
 const { date, range } = useCalendar()
 const { eventsForDay, eventsForDays, status } = useCalendarEvents()
+const { draftEvent, onGridPointerdown, onGridDblclick, registerHost } = useEventDraft()
+
+// A grid the `+` button can draw on, so it knows it does not have to navigate
+// somewhere else first
+registerHost()
 
 const isSmallScreen = useBreakpoints(breakpointsTailwind).smaller('lg')
 // Only narrow after mount: the server always renders the full week, so the
@@ -27,13 +32,25 @@ const gridStyle = computed(() => ({
   gridTemplateColumns: `3.5rem repeat(${days.value.length}, minmax(0, 1fr))`
 }))
 
-const timedEvents = computed(() => days.value.map(day => layoutDay(
-  eventsForDay(day).filter(event => !event.allDay),
-  day
-)))
+// The draft joins the events it is being drawn among, so the layout gives it
+// a real slot and the day reflows around it the way it would for a real one
+const timedEvents = computed(() => {
+  const drafted = draftEvent.value && !draftEvent.value.allDay ? draftEvent.value : null
+
+  return days.value.map(day => layoutDay(
+    [
+      ...eventsForDay(day).filter(event => !event.allDay),
+      ...(drafted && isSameDay(new Date(drafted.start), day) ? [drafted] : [])
+    ],
+    day
+  ))
+})
 
 const allDayEvents = computed(() => layoutAllDay(
-  eventsForDays(days.value).filter(event => event.allDay),
+  [
+    ...eventsForDays(days.value).filter(event => event.allDay),
+    ...(draftEvent.value?.allDay ? [draftEvent.value] : [])
+  ],
   days.value
 ))
 
@@ -49,22 +66,24 @@ const hours = Array.from({ length: 23 }, (_, index) => index + 1)
 // the header band plus the header's own height. Only the all-day row varies,
 // the day names are the fixed height the month view mirrors (plus its border)
 const DAY_HEADER_HEIGHT = 41
-// A lane is an `h-5` chip, its 4px top margin and the 4px below it, either
-// the gap to the next lane or the row's own bottom padding. The row adds its
-// top border on top of that
+// A lane is a row holding an `h-5` chip, its 4px top margin and the 4px it
+// leaves below. The row adds its top border on top of that
 const ALL_DAY_LANE_HEIGHT = 28
 const ALL_DAY_ROW_BORDER = 1
 
 const chrome = useTemplateRef('chrome')
 const { height: measuredChrome } = useElementSize(chrome, { width: 0, height: 0 }, { box: 'border-box' })
 
-const allDayLanes = computed(() => allDayEvents.value.reduce((lanes, { lane }) => Math.max(lanes, lane + 1), 0))
+// The row always stands, empty or not: it is the only place a multi-day event
+// can be drawn, and a row that appears with the first all-day event of a week
+// pushes the whole grid down as it arrives
+const allDayLanes = computed(() => allDayEvents.value.reduce((lanes, { lane }) => Math.max(lanes, lane + 1), 1))
 
 // The observer only reports a render after the first paint, so a reload of a
 // week with all-day events would push the grid down by the row it had not
 // measured yet. The lanes are known upfront, they hold the padding until then
 const chromeHeight = computed(() => measuredChrome.value
-  || DAY_HEADER_HEIGHT + (allDayLanes.value ? allDayLanes.value * ALL_DAY_LANE_HEIGHT + ALL_DAY_ROW_BORDER : 0))
+  || DAY_HEADER_HEIGHT + allDayLanes.value * ALL_DAY_LANE_HEIGHT + ALL_DAY_ROW_BORDER)
 
 const chromeOffset = computed(() => `calc(var(--ui-header-height) + 0.5rem + ${chromeHeight.value}px)`)
 
@@ -164,22 +183,47 @@ onMounted(async () => {
         </div>
       </div>
 
+      <!-- Full-height rows rather than a gap and a bottom padding around the
+        chips: the row still stands at its size with nothing in it, and the
+        column separators reach the border closing it -->
       <div
-        v-if="allDayEvents.length"
-        class="grid gap-y-1 pb-1 border-t border-default"
-        :style="gridStyle"
+        class="grid border-t border-default"
+        :style="{ ...gridStyle, gridTemplateRows: `repeat(${allDayLanes}, ${ALL_DAY_LANE_HEIGHT}px)` }"
       >
         <span class="row-span-full self-center text-[10px] text-dimmed text-end pe-2">
           all-day
         </span>
 
-        <CalendarEventChip
+        <!-- The day the gesture started on, behind the bars so they keep
+          their own pointers -->
+        <div
+          v-for="(day, index) in days"
+          :key="`all-day-${day.getTime()}`"
+          :data-date="isoDate(day)"
+          class="row-span-full border-s border-default"
+          :style="{ gridColumn: index + 2 }"
+          @pointerdown="onGridPointerdown($event, { kind: 'allDay', day })"
+          @dblclick="onGridDblclick($event, { kind: 'allDay', day })"
+        />
+
+        <template
           v-for="{ event, colStart, colSpan, lane } in allDayEvents"
           :key="event.id"
-          :event="event"
-          class="mx-1 mt-1 h-5"
-          :style="{ gridColumn: `${colStart + 2} / span ${colSpan}`, gridRow: lane + 1 }"
-        />
+        >
+          <CalendarEventDraft
+            v-if="event.id === DRAFT_EVENT_ID"
+            variant="chip"
+            anchored
+            class="mx-1 mt-1 h-5"
+            :style="{ gridColumn: `${colStart + 2} / span ${colSpan}`, gridRow: lane + 1 }"
+          />
+          <CalendarEventChip
+            v-else
+            :event="event"
+            class="mx-1 mt-1 h-5"
+            :style="{ gridColumn: `${colStart + 2} / span ${colSpan}`, gridRow: lane + 1 }"
+          />
+        </template>
       </div>
     </div>
   </div>

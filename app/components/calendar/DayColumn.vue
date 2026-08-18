@@ -1,35 +1,29 @@
 <script setup lang="ts">
-import { addMinutes, isToday, startOfDay } from 'date-fns'
+import { isToday } from 'date-fns'
 
 // Placeholder blocks shown while a range loads, as [start hour, hours]
 const SKELETONS = [[9, 1.5], [13, 1], [16, 2]] as const
 
-const props = defineProps<{
+defineProps<{
   day: Date
   events: PositionedEvent[]
   loading?: boolean
 }>()
 
-const { createEvent } = useCalendar()
-
-// Clicking an empty slot creates a one-hour event snapped to the half hour
-function onClick(event: MouseEvent) {
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  const minutes = Math.floor((event.clientY - rect.top) / PX_PER_MINUTE / 30) * 30
-  const start = addMinutes(startOfDay(props.day), minutes)
-
-  createEvent({ start, end: addMinutes(start, 60) })
-}
+const { onGridPointerdown, onGridDblclick } = useEventDraft()
 </script>
 
 <template>
   <!-- The column start is the scroller's snap point for midnight, the hour
-    lines cover the rest of the day -->
+    lines cover the rest of the day. Its top is midnight for the gestures too,
+    which read a time straight off the pointer -->
   <div
     data-day-column
+    :data-date="isoDate(day)"
     class="relative border-s border-default snap-start"
     :style="{ height: `${24 * HOUR_HEIGHT}px` }"
-    @click="onClick"
+    @pointerdown="onGridPointerdown($event, { kind: 'timed', day })"
+    @dblclick="onGridDblclick($event, { kind: 'timed', day })"
   >
     <div
       v-for="hour in 23"
@@ -45,11 +39,23 @@ function onClick(event: MouseEvent) {
       :style="{ top: `${hour * HOUR_HEIGHT}px`, height: `${hours * HOUR_HEIGHT}px` }"
     />
 
-    <CalendarEventBlock
+    <template
       v-for="positioned in events"
       :key="positioned.event.id"
-      :positioned="positioned"
-    />
+    >
+      <!-- The draft rode through the same layout, so it takes its slot and
+        the day has already made room for it -->
+      <CalendarEventDraft
+        v-if="positioned.event.id === DRAFT_EVENT_ID"
+        variant="block"
+        anchored
+        :style="eventBlockStyle(positioned)"
+      />
+      <CalendarEventBlock
+        v-else
+        :positioned="positioned"
+      />
+    </template>
 
     <ClientOnly>
       <CalendarNowIndicator v-if="isToday(day)" />

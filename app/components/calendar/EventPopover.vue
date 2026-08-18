@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { addDays } from 'date-fns'
 import type { ContextMenuItem } from '@nuxt/ui'
 
 const props = defineProps<{
@@ -7,23 +6,8 @@ const props = defineProps<{
   disabled?: boolean
 }>()
 
-const { editEvent } = useCalendar()
-const { calendars, removeEvent } = useCalendarEvents()
-
-const calendar = computed(() => calendars.value.find(calendar => calendar.id === props.event.calendarId))
-
-const time = computed(() => {
-  const start = new Date(props.event.start)
-  if (props.event.allDay) {
-    // The end is the first excluded midnight, so the last covered day is the
-    // one before it
-    const last = addDays(new Date(props.event.end), -1)
-
-    return last > start ? `${formatFullDate(start)} – ${formatFullDate(last)}` : formatFullDate(start)
-  }
-
-  return `${formatFullDate(start)} ⋅ ${formatTime(start)} – ${formatTime(new Date(props.event.end))}`
-})
+const { formSide } = useCalendar()
+const { removeEvent, updateEvent } = useCalendarEvents()
 
 // A popover and a context menu each are what an event costs to render, and the
 // month view puts a few hundred of them on screen at once. Neither is worth
@@ -59,11 +43,6 @@ function onUpdateOpen(value: boolean) {
   open.value = value
 }
 
-function onEdit() {
-  open.value = false
-  editEvent(props.event)
-}
-
 function onRemove() {
   open.value = false
   removeEvent(props.event.id)
@@ -72,7 +51,9 @@ function onRemove() {
 const items = computed<ContextMenuItem[]>(() => [{
   label: 'Edit',
   icon: 'i-lucide-pencil',
-  onSelect: onEdit
+  onSelect: () => {
+    open.value = true
+  }
 }, {
   label: 'Delete',
   icon: 'i-lucide-trash-2',
@@ -91,7 +72,10 @@ const items = computed<ContextMenuItem[]>(() => [{
     @focusin="arm"
     @contextmenu="arm"
   >
-    <slot v-if="!armed" />
+    <slot
+      v-if="!armed"
+      :open="false"
+    />
 
     <!-- `as-child` drops its handlers on a component that renders a fragment,
       so the two triggers need a real element between them, and the trigger
@@ -102,52 +86,22 @@ const items = computed<ContextMenuItem[]>(() => [{
       :disabled="disabled"
     >
       <div class="contents">
+        <!-- The event opens straight into the form the draft uses, so there is
+          no read-only step between pointing at an event and changing it. The
+          content only mounts while it is open, which re-seeds it every time -->
         <UPopover
           :open="open"
-          :ui="{ content: 'flex flex-col gap-1 p-4 w-72' }"
+          :ui="{ content: 'p-2 w-74' }"
+          :content="{ side: formSide }"
           @update:open="onUpdateOpen"
         >
-          <slot />
+          <slot :open="open" />
 
           <template #content>
-            <div class="flex items-start justify-between gap-2">
-              <p class="font-semibold text-highlighted">
-                {{ event.title }}
-              </p>
-
-              <UTheme :props="{ button: { color: 'neutral', variant: 'ghost', size: 'sm' } }">
-                <div class="flex -mt-1.5 -me-1.5">
-                  <UButton
-                    icon="i-lucide-pencil"
-                    aria-label="Edit event"
-                    @click="onEdit"
-                  />
-                  <UButton
-                    icon="i-lucide-trash-2"
-                    aria-label="Delete event"
-                    @click="onRemove"
-                  />
-                </div>
-              </UTheme>
-            </div>
-
-            <p class="text-sm text-muted">
-              {{ time }}
-            </p>
-
-            <p
-              v-if="event.description"
-              class="text-sm text-default"
-            >
-              {{ event.description }}
-            </p>
-
-            <UBadge
-              :label="calendar?.name"
-              :color="calendar?.color"
-              variant="subtle"
-              size="sm"
-              class="self-start mt-1"
+            <CalendarEventForm
+              :event="event"
+              @save="updateEvent"
+              @remove="onRemove"
             />
           </template>
         </UPopover>

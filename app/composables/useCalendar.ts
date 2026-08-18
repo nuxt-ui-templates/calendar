@@ -40,6 +40,10 @@ const _useCalendar = () => {
     return formatRangeTitle(range.value)
   })
 
+  // The event form stands beside the event it belongs to. The day view has a
+  // single column the width of the grid, so there is no beside to stand in
+  const formSide = computed<'bottom' | 'right'>(() => view.value === 'day' ? 'bottom' : 'right')
+
   const step = computed(() => view.value === 'month' ? { months: 1 } : { days: view.value === 'day' ? 1 : 7 })
 
   const prevDate = computed(() => date.value.subtract(step.value))
@@ -70,22 +74,7 @@ const _useCalendar = () => {
   // the viewport is a small one
   const isSidebarOpen = ref(true)
 
-  const isEventModalOpen = ref(false)
   const isSearchOpen = ref(false)
-  const editingEvent = ref<CalendarEvent | null>(null)
-  const eventDefaults = ref<{ start: Date, end: Date, allDay?: boolean } | null>(null)
-
-  function createEvent(defaults?: { start: Date, end: Date, allDay?: boolean }) {
-    editingEvent.value = null
-    eventDefaults.value = defaults ?? null
-    isEventModalOpen.value = true
-  }
-
-  function editEvent(event: CalendarEvent) {
-    editingEvent.value = event
-    eventDefaults.value = null
-    isEventModalOpen.value = true
-  }
 
   defineShortcuts({
     // Enabled while typing so it also closes the palette from its own input
@@ -99,7 +88,17 @@ const _useCalendar = () => {
     d: () => navigateTo(pathFor(date.value, 'day')),
     w: () => navigateTo(pathFor(date.value, 'week')),
     m: () => navigateTo(pathFor(date.value, 'month')),
-    n: () => createEvent(),
+    // Resolved here rather than above: the draft composable reads this one, so
+    // taking it at setup would have the two of them waiting on each other
+    n: () => {
+      const { draft, createAtAnchor } = useEventDraft()
+
+      // A switch or the calendar select holds the focus without counting as
+      // an input, and `n` there would throw away what is being written
+      if (!draft.value) {
+        createAtAnchor()
+      }
+    },
     arrowleft: () => {
       setDirection('left')
       navigateTo(pathFor(prevDate.value))
@@ -117,17 +116,13 @@ const _useCalendar = () => {
     title,
     visibleMonth,
     monthLabelsVisible,
+    formSide,
     prevDate,
     nextDate,
     pathFor,
     setDirection,
     isSidebarOpen,
-    isEventModalOpen,
-    isSearchOpen,
-    editingEvent,
-    eventDefaults,
-    createEvent,
-    editEvent
+    isSearchOpen
   }
 }
 

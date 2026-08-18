@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { CommandPaletteGroup, CommandPaletteItem } from '@nuxt/ui'
 
-const { view, date, pathFor, createEvent, editEvent, isSearchOpen } = useCalendar()
+const { view, date, pathFor, isSearchOpen } = useCalendar()
+const { createAtAnchor } = useEventDraft()
 const { events, calendars, hiddenCalendars, toggleCalendar } = useCalendarEvents()
 
 const views = [
@@ -15,12 +16,12 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
   items: [{
     label: 'New event',
     icon: 'i-lucide-plus',
-    kbds: ['n'],
-    onSelect: () => createEvent()
+    kbds: [{ value: 'n', variant: 'soft' }],
+    onSelect: () => createAtAnchor()
   }, {
     label: 'Go to today',
     icon: 'i-lucide-calendar-check',
-    kbds: ['t'],
+    kbds: [{ value: 't', variant: 'soft' }],
     to: pathFor(todayDate())
   }]
 }, {
@@ -29,7 +30,7 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
   items: views.map(item => ({
     label: item.label,
     icon: item.icon,
-    kbds: [item.kbd],
+    kbds: [{ value: item.kbd, variant: 'soft' }],
     active: view.value === item.value,
     to: pathFor(date.value, item.value)
   }))
@@ -58,10 +59,7 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
     label: event.title,
     suffix: formatFullDate(new Date(event.start)),
     chip: { color: calendars.value.find(calendar => calendar.id === event.calendarId)?.color },
-    onSelect: () => {
-      navigateTo(pathFor(toCalendarDate(new Date(event.start))))
-      editEvent(event)
-    }
+    onSelect: () => navigateTo(pathFor(toCalendarDate(new Date(event.start))))
   }))
 }])
 </script>
