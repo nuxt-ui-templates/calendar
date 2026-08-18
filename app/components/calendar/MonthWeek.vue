@@ -27,10 +27,21 @@ const gridStyle = {
   gridTemplateRows: ['auto', ...Array.from({ length: MAX_LANES }, () => `${SLOT_HEIGHT}px`), `minmax(${SLOT_HEIGHT}px, 1fr)`].join(' ')
 }
 
+// The virtualizer keeps a couple of dozen of these mounted, and a drag rewrites
+// the draft on every pointermove. Rows it cannot reach settle on `null` and
+// their layout never sees the change
+const weekDraft = computed(() => {
+  const event = draftEvent.value
+
+  return event && new Date(event.start) < weekEnd.value && new Date(event.end) > props.weekStart
+    ? event
+    : null
+})
+
 const lanes = computed(() => layoutAllDay(
   [
     ...eventsForDays(days.value).filter(event => event.allDay),
-    ...(draftEvent.value?.allDay ? [draftEvent.value] : [])
+    ...(weekDraft.value?.allDay ? [weekDraft.value] : [])
   ],
   days.value
 ))
@@ -54,7 +65,7 @@ function covers(bar: AllDayPositionedEvent, index: number): boolean {
 // Timed events fill the slots the day's bars leave free, top first, and the
 // last free slot becomes the "+N more" button when they overflow
 const cells = computed(() => {
-  const drafted = draftEvent.value && !draftEvent.value.allDay ? draftEvent.value : null
+  const drafted = weekDraft.value && !weekDraft.value.allDay ? weekDraft.value : null
 
   return days.value.map((day, index) => {
     const timed = [

@@ -41,8 +41,18 @@ export function isoDate(date: Date): string {
   return lightFormat(date, 'yyyy-MM-dd')
 }
 
+// A drag spends dozens of moves inside one cell, and each one would otherwise
+// allocate a `CalendarDate` and convert it back through the timezone
+let lastISO: string | undefined
+let lastDate: Date | undefined
+
 export function dateFromISO(iso: string): Date {
-  return toDate(parseDate(iso))
+  if (iso !== lastISO) {
+    lastISO = iso
+    lastDate = toDate(parseDate(iso))
+  }
+
+  return lastDate!
 }
 
 // The day under a point, from whichever cell is topmost there. Hit-testing
