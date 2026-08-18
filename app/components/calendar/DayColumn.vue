@@ -1,16 +1,27 @@
 <script setup lang="ts">
-import { isToday } from 'date-fns'
+import { isSameDay, isToday } from 'date-fns'
 
 // Placeholder blocks shown while a range loads, as [start hour, hours]
 const SKELETONS = [[9, 1.5], [13, 1], [16, 2]] as const
 
-defineProps<{
+const props = defineProps<{
   day: Date
   events: PositionedEvent[]
+  // The leftmost column on screen, which is where a block arriving from a day
+  // the grid does not show has to take its form
+  first?: boolean
   loading?: boolean
 }>()
 
 const { onGridPointerdown, onGridDblclick } = useEventDraft()
+
+// A block running past midnight is drawn in both days, and the form goes to
+// the one holding its start so it does not open twice
+function anchored(event: CalendarEvent): boolean {
+  const start = new Date(event.start)
+
+  return isSameDay(start, props.day) || (!!props.first && start < props.day)
+}
 </script>
 
 <template>
@@ -54,6 +65,7 @@ const { onGridPointerdown, onGridDblclick } = useEventDraft()
       <CalendarEventBlock
         v-else
         :positioned="positioned"
+        :anchored="anchored(positioned.event)"
       />
     </template>
 

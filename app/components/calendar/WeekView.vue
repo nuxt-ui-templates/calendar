@@ -150,6 +150,7 @@ onMounted(async () => {
           :key="day.getTime()"
           :day="day"
           :events="timedEvents[index]!"
+          :first="index === 0"
           :loading="loading"
         />
       </div>

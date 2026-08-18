@@ -18,9 +18,16 @@ const emit = defineEmits<{
   update: [patch: Partial<EventDraft>]
   save: [event: CalendarEvent]
   remove: [id: string]
+  escape: []
 }>()
 
 const { calendars } = useCalendarEvents()
+
+// The form only mounts while its popover is open, so it is what tells
+// `useEventEditor` the event still has somewhere to be edited
+if (props.event) {
+  useEventEditor().registerAnchor()
+}
 
 // Both ends carry a date of their own, the way Apple Calendar states them:
 // the span is edited from the end rather than riding along behind the start,
@@ -36,16 +43,22 @@ const formSchema = z.object({
   endTime: z.instanceof(Time, { error: 'End time is required' }),
   allDay: z.boolean(),
   description: z.string().max(1000).optional()
-}).refine(data => data.allDay
+}).refine(data => !data.startDate || !data.endDate || (data.allDay
   ? data.endDate.compare(data.startDate) >= 0
-  : toDateTime(data.endDate, data.endTime) > toDateTime(data.startDate, data.startTime), {
+  : toDateTime(data.endDate, data.endTime) > toDateTime(data.startDate, data.startTime)), {
   error: 'Ends before it starts',
   path: ['endDate']
 })
 
 type FormSchema = z.output<typeof formSchema>
 
-function initialState(): FormSchema {
+// Backspacing a date or a time segment down to nothing clears the whole value,
+// which is what the two `required` messages above are for. The state has to be
+// able to hold that gap while it is on screen
+type FormState = Omit<FormSchema, 'startDate' | 'startTime' | 'endDate' | 'endTime'>
+  & Partial<Pick<FormSchema, 'startDate' | 'startTime' | 'endDate' | 'endTime'>>
+
+function initialState(): FormState {
   const source = props.event ?? props.draft
   const start = props.event ? new Date(props.event.start) : props.draft!.start
   const end = props.event ? new Date(props.event.end) : props.draft!.end
@@ -69,7 +82,7 @@ function initialState(): FormSchema {
 
 // Shallow so the `CalendarDate` and `Time` instances are not wrapped in a
 // reactive proxy, which would break their private fields
-const state = shallowReactive<FormSchema>(initialState())
+const state = shallowReactive<FormState>(initialState())
 
 // The pickers hang off the date text rather than a trailing button of their own
 const startsDate = useTemplateRef('startsDate')
@@ -85,9 +98,20 @@ const calendarItems = computed(() => calendars.value.map(calendar => ({
 // to the title rather than spelling the name out
 const color = computed(() => calendars.value.find(calendar => calendar.id === state.calendarId)?.color ?? 'primary')
 
-function range(data: FormSchema): { start: Date, end: Date } {
+// `null` while a segment is empty: `toDate` throws on a missing date and
+// `toDateTime` quietly reads a missing time as midnight, and neither is
+// something to save an event from
+function range(data: FormState): { start: Date, end: Date } | null {
+  if (!data.startDate || !data.endDate) {
+    return null
+  }
+
   if (data.allDay) {
     return { start: toDate(data.startDate), end: addDays(toDate(data.endDate), 1) }
+  }
+
+  if (!data.startTime || !data.endTime) {
+    return null
   }
 
   return { start: toDateTime(data.startDate, data.startTime), end: toDateTime(data.endDate, data.endTime) }
@@ -119,25 +143,24 @@ onBeforeUnmount(flush)
 watch(
   () => [state.title, state.calendarId, state.description, state.allDay, state.startDate, state.startTime, state.endDate, state.endTime],
   () => {
-    const { start, end } = range(state)
+    const period = range(state)
 
-    // An end that has not caught up with the start covers no time at all, so
-    // the last range that did stands until it does
-    if (end <= start) {
+    // A span still being typed covers no time at all, so the last one that did
+    // stands until it does
+    if (!period || period.end <= period.start) {
       return
     }
 
-    if (props.event) {
-      // Mid-retype, the field is empty for a keystroke or two. The event holds
-      // the name it had until there is one to replace it with
-      if (!state.title.trim()) {
-        return
-      }
+    const { start, end } = period
 
+    if (props.event) {
       queue({
         ...props.event,
         calendarId: state.calendarId,
-        title: state.title,
+        // Mid-retype the field is empty for a keystroke or two. The event
+        // holds the name it had rather than losing it, and rather than holding
+        // back everything else typed in the meantime
+        title: state.title.trim() ? state.title : props.event.title,
         description: state.description || undefined,
         start: toLocalISO(start),
         end: toLocalISO(end),
@@ -162,10 +185,15 @@ watch(
 <template>
   <!-- Apple Calendar's inspector: rounded groups on the popover surface, each
     field a line of plain text until it is focused, no labels and no boxes -->
+  <!-- The date and time segments swallow every key but Tab, Escape included,
+    so the popover never hears the one that should close it. Caught on the way
+    down instead, before a segment can take it. The pickers hang their content
+    off the body, so their own Escape never comes through here -->
   <UForm
     :schema="formSchema"
     :state="state"
     class="flex flex-col gap-2"
+    @keydown.escape.capture.stop="emit('escape')"
   >
     <div class="flex items-center px-3 py-2 rounded-md bg-(--control-bg)">
       <UFormField

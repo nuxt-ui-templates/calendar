@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { addMinutes } from 'date-fns'
 
-const props = defineProps<{
+// `anchored` is the segment the form hangs off, for a block running past
+// midnight and drawn in both days. Defaulted, or an omitted boolean prop would
+// read as `false`
+const props = withDefaults(defineProps<{
   positioned: PositionedEvent
-}>()
+  anchored?: boolean
+}>(), { anchored: true })
 
 const { calendars, updateEvent } = useCalendarEvents()
 
@@ -55,6 +59,7 @@ const compact = computed(() => props.positioned.height < 40)
   <CalendarEventPopover
     :event="event"
     :disabled="suppressed"
+    :anchored="anchored"
   >
     <button
       type="button"

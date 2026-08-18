@@ -111,9 +111,22 @@ const cells = computed(() => {
 
     const slot = free[visible.length]
 
+    // What the cell already draws, so the overflow list below does not offer
+    // the form on a chip that has a place of its own in the grid
+    const shown = new Set([
+      ...visible.map(event => event.id),
+      ...covering.filter(bar => bar.lane < MAX_LANES).map(bar => bar.event.id)
+    ])
+
     return {
       day,
-      events: visible.map((event, position) => ({ event, slot: free[position]! })),
+      // An event running past midnight is drawn on both days, and the form
+      // goes to the one holding its start so it does not open twice
+      events: visible.map((event, position) => ({
+        event,
+        slot: free[position]!,
+        anchored: isSameDay(new Date(event.start), day)
+      })),
       // The popover lists the whole day, visible bars included, so the hidden
       // count is carried alongside rather than derived from its length. The
       // draft is left out of it, it is not an event yet
@@ -121,7 +134,9 @@ const cells = computed(() => {
         ? {
             slot,
             hidden: dropped.length + timed.length - visible.length,
-            events: [...covering.map(bar => bar.event), ...timed].filter(event => event.id !== DRAFT_EVENT_ID)
+            events: [...covering.map(bar => bar.event), ...timed]
+              .filter(event => event.id !== DRAFT_EVENT_ID)
+              .map(event => ({ event, anchored: !shown.has(event.id) }))
           }
         : null
     }
@@ -208,6 +223,7 @@ function label(day: Date): string {
       <CalendarEventChip
         v-else
         :event="event"
+        :anchored="!continuesBefore"
         class="self-start mx-0.5"
         :class="[continuesBefore && 'rounded-s-none', continuesAfter && 'rounded-e-none']"
         :style="{ gridColumn: `${colStart + 1} / span ${colSpan}`, gridRow: lane + 2 }"
@@ -222,7 +238,7 @@ function label(day: Date): string {
         what identifies the event, so the time gives way. The popover keeps
         its own times, it is wide enough -->
       <template
-        v-for="{ event, slot } in dayEvents"
+        v-for="{ event, slot, anchored } in dayEvents"
         :key="event.id"
       >
         <CalendarEventDraft
@@ -235,6 +251,7 @@ function label(day: Date): string {
         <CalendarEventChip
           v-else
           :event="event"
+          :anchored="anchored"
           show-time
           class="self-start mx-0.5 max-lg:**:data-time:hidden"
           :style="{ gridColumn: index + 1, gridRow: slot + 2 }"
@@ -263,9 +280,10 @@ function label(day: Date): string {
 
         <template #content>
           <CalendarEventChip
-            v-for="event in more.events"
+            v-for="{ event, anchored } in more.events"
             :key="event.id"
             :event="event"
+            :anchored="anchored"
             show-time
           />
         </template>

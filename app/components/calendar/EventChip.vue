@@ -1,10 +1,13 @@
 <script setup lang="ts">
 defineOptions({ inheritAttrs: false })
 
-const props = defineProps<{
+// `anchored` is the segment the form hangs off, for an event drawn across more
+// than one day. Defaulted, or an omitted boolean prop would read as `false`
+const props = withDefaults(defineProps<{
   event: CalendarEvent
   showTime?: boolean
-}>()
+  anchored?: boolean
+}>(), { anchored: true })
 
 const { calendars } = useCalendarEvents()
 const { movingId, suppressed, onPointerdown } = useEventMove()
@@ -21,6 +24,7 @@ const moving = computed(() => movingId.value === props.event.id)
     v-slot="{ open }"
     :event="event"
     :disabled="suppressed"
+    :anchored="anchored"
   >
     <button
       v-bind="$attrs"

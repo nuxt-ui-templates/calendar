@@ -123,6 +123,7 @@ watch(pendingScroll, reveal)
         v-if="draft"
         :draft="draft"
         @update="updateDraft"
+        @escape="discardDraft(true)"
       />
     </template>
   </UPopover>

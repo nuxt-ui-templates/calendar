@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import type { ContextMenuItem } from '@nuxt/ui'
 
-const props = defineProps<{
+// An event running past midnight draws in every day it touches, and only the
+// segment holding its start owns the form, the way a draft ghost spanning two
+// month rows does. Defaulted rather than left off: Vue reads an absent boolean
+// prop as `false`, which would leave every call site that does not draw an
+// event twice unable to open one at all
+const props = withDefaults(defineProps<{
   event: CalendarEvent
   disabled?: boolean
-}>()
+  anchored?: boolean
+}>(), { anchored: true })
 
 const { formSide } = useCalendar()
 const { removeEvent, updateEvent } = useCalendarEvents()
+const { editingId, openEvent, closeEvent } = useEventEditor()
 
 // A popover and a context menu each are what an event costs to render, and the
 // month view puts a few hundred of them on screen at once. Neither is worth
@@ -33,27 +40,33 @@ function arm(event: Event) {
   }
 }
 
-const open = ref(false)
+// Held app-wide, so editing a date walks the chip to another day without
+// taking the form down with it. A chip that renders already holding it is
+// armed from the start, there is nothing left to wait for
+const open = computed(() => props.anchored && editingId.value === props.event.id)
+const active = computed(() => armed.value || open.value)
 
 function onUpdateOpen(value: boolean) {
   if (props.disabled) {
     return
   }
 
-  open.value = value
+  if (value) {
+    openEvent(props.event.id)
+  } else {
+    closeEvent(props.event.id)
+  }
 }
 
 function onRemove() {
-  open.value = false
+  closeEvent(props.event.id)
   removeEvent(props.event.id)
 }
 
 const items = computed<ContextMenuItem[]>(() => [{
   label: 'Edit',
   icon: 'i-lucide-pencil',
-  onSelect: () => {
-    open.value = true
-  }
+  onSelect: () => openEvent(props.event.id)
 }, {
   label: 'Delete',
   icon: 'i-lucide-trash-2',
@@ -73,7 +86,7 @@ const items = computed<ContextMenuItem[]>(() => [{
     @contextmenu="arm"
   >
     <slot
-      v-if="!armed"
+      v-if="!active"
       :open="false"
     />
 
@@ -103,6 +116,7 @@ const items = computed<ContextMenuItem[]>(() => [{
               :event="event"
               @save="updateEvent"
               @remove="onRemove"
+              @escape="closeEvent(event.id)"
             />
           </template>
         </UPopover>
