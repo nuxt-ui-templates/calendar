@@ -245,7 +245,7 @@ export default defineAppConfig({
         color: 'neutral',
         variant: 'pill',
         class: {
-          indicator: 'bg-white dark:bg-(--control-bg) shadow',
+          indicator: 'bg-white dark:bg-(--control-bg) shadow-sm',
           trigger: [
             'data-[state=active]:text-highlighted',
             'hover:data-[state=inactive]:not-disabled:bg-(--glass-bg)',
