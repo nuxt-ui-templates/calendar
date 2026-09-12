@@ -74,12 +74,12 @@ const _useEventDraft = () => {
     return visible?.id ?? calendars.value[0]?.id ?? 'work'
   }
 
-  function createDraft(input: { start: Date, end: Date, allDay?: boolean, scroll?: boolean }) {
+  function createDraft(input: { start: Date, end: Date, allDay?: boolean, title?: string, scroll?: boolean }) {
     draft.value = {
       start: input.start,
       end: input.end,
       allDay: input.allDay ?? false,
-      title: '',
+      title: input.title ?? '',
       calendarId: defaultCalendarId(),
       description: ''
     }
@@ -118,8 +118,9 @@ const _useEventDraft = () => {
   }
 
   // Everything the event needs is already on the draft, there is no form to
-  // hand it over: what the ghost is showing is what gets saved
-  function commitDraft() {
+  // hand it over: what the ghost is showing is what gets saved. Enter in the
+  // form commits it and hands the focus back the way Escape does
+  function commitDraft(refocus = false) {
     if (!draft.value) {
       return
     }
@@ -134,12 +135,12 @@ const _useEventDraft = () => {
       allDay: draft.value.allDay || undefined
     })
 
-    discardDraft()
+    discardDraft(refocus)
   }
 
   // The `+` button, `n` and the command palette. They draw on the date the
   // route is on rather than navigating somewhere else
-  async function createAtAnchor() {
+  async function createAtAnchor(title = '') {
     // Nowhere to draw here, so land on a grid first
     if (!hosts.value) {
       await navigateTo(pathFor(date.value))
@@ -149,7 +150,24 @@ const _useEventDraft = () => {
     const hour = Math.min(23, new Date().getHours() + 1)
     const start = addMinutes(startOfDay(toDate(date.value)), hour * 60)
 
-    createDraft({ start, end: addMinutes(start, 60), scroll: true })
+    createDraft({ start, end: addMinutes(start, 60), title, scroll: true })
+  }
+
+  // The quick event input. What the phrase says is drawn as a draft rather
+  // than saved outright, so what was read into it is on screen to be put
+  // right before it is. Always lands on its day: the month view scrolls to a
+  // route change, and the small-screen week window slides to it, where a day
+  // merely inside the fetched range could still be off screen with no ghost
+  // mounted to scroll to
+  async function createFromQuick(quick: QuickEvent | null, text: string) {
+    // No time in it, so it goes where the `+` button would put it
+    if (!quick) {
+      return createAtAnchor(text)
+    }
+
+    await navigateTo(pathFor(toCalendarDate(quick.start)))
+
+    createDraft({ ...quick, scroll: true })
   }
 
   let gesture: Gesture | null = null
@@ -347,6 +365,7 @@ const _useEventDraft = () => {
     discardDraft,
     commitDraft,
     createAtAnchor,
+    createFromQuick,
     onGridPointerdown,
     onGridDblclick,
     registerHost,

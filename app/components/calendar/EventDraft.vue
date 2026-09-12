@@ -83,17 +83,25 @@ watch(pendingScroll, reveal)
     @update:open="onUpdateOpen"
   >
     <template #anchor>
+      <!-- Dressed as the event it is about to be, with its form open: the
+        chip wears the held shade a selected chip does, and only an all-day
+        one the tinted pill, so nothing changes about it when Enter saves it -->
       <div
         ref="el"
         v-bind="$attrs"
         data-draft
+        :data-active="variant === 'chip' || undefined"
         aria-hidden="true"
         class="select-none transition-colors"
         :class="[
-          eventBlockClasses[color],
           variant === 'block'
-            ? 'absolute z-20 flex flex-col items-start overflow-hidden rounded-xs px-3 py-1 text-xs text-start'
-            : 'flex items-center gap-1.5 min-w-0 rounded-full px-1.5 py-0.5 text-xs',
+            ? [eventBlockClasses[color], 'absolute z-20 flex flex-col items-start overflow-hidden rounded-xs px-3 py-1 text-xs text-start']
+            : [
+              'flex items-center gap-1.5 min-w-0 rounded-full px-1.5 py-0.5 text-xs',
+              draft!.allDay
+                ? eventBlockClasses[color]
+                : ['text-default data-active:bg-(--control-bg)', eventChipCompactClasses[color]]
+            ],
           continuesBefore && 'rounded-s-none',
           continuesAfter && 'rounded-e-none'
         ]"
@@ -104,6 +112,21 @@ watch(pendingScroll, reveal)
           class="absolute inset-s-1 inset-y-1 w-1 rounded-full"
           :class="calendarDotClasses[color]"
         />
+        <span
+          v-else-if="draft!.allDay"
+          :class="calendarDotClasses[color]"
+          class="rounded-full flex items-center justify-center p-0.5 -mx-0.75"
+        >
+          <UIcon
+            name="i-lucide-calendar"
+            class="size-2.5 shrink-0 text-inverted"
+          />
+        </span>
+        <span
+          v-else
+          class="max-lg:hidden size-2 shrink-0 rounded-full"
+          :class="calendarDotClasses[color]"
+        />
 
         <span
           class="font-medium truncate"
@@ -112,8 +135,8 @@ watch(pendingScroll, reveal)
 
         <span
           v-if="times"
-          class="truncate opacity-80 tabular-nums"
-          :class="variant === 'block' ? 'w-full' : 'ms-auto shrink-0 text-[11px]'"
+          class="truncate tabular-nums"
+          :class="variant === 'block' ? 'w-full opacity-80' : 'ms-auto shrink-0 text-muted text-[11px]'"
         >{{ variant === 'block' ? times : formatTime(draft!.start) }}</span>
       </div>
     </template>
@@ -123,6 +146,7 @@ watch(pendingScroll, reveal)
         v-if="draft"
         :draft="draft"
         @update="updateDraft"
+        @submit="commitDraft(true)"
         @escape="discardDraft(true)"
       />
     </template>
