@@ -19,7 +19,28 @@ const emit = defineEmits<{
   save: [event: CalendarEvent]
   remove: [id: string]
   escape: []
+  submit: []
 }>()
+
+const form = useTemplateRef('form')
+
+// Enter is Escape's counterpart, the way out that keeps what was written, and
+// caught on the way down for the same reason: the segments swallow it. It goes
+// through the form rather than the browser's implicit submission, which only
+// the title input would trigger. The fields with a meaning of their own for it
+// keep it, the select opening its list, the checkbox declining to toggle, the
+// notes taking a new line
+function onEnter(event: KeyboardEvent) {
+  const target = event.target as HTMLElement
+
+  if (target.tagName === 'TEXTAREA' || target.closest('[role="combobox"],[role="checkbox"]')) {
+    return
+  }
+
+  event.preventDefault()
+  event.stopPropagation()
+  form.value?.submit()
+}
 
 const { calendars } = useCalendarEvents()
 
@@ -190,10 +211,13 @@ watch(
     down instead, before a segment can take it. The pickers hang their content
     off the body, so their own Escape never comes through here -->
   <UForm
+    ref="form"
     :schema="formSchema"
     :state="state"
     class="flex flex-col gap-2"
     @keydown.escape.capture.stop="emit('escape')"
+    @keydown.enter.capture="onEnter"
+    @submit="emit('submit')"
   >
     <div class="flex items-center px-3 py-2 rounded-md bg-(--control-bg)">
       <UFormField
