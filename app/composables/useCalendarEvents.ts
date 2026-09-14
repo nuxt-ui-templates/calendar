@@ -48,7 +48,19 @@ const _useCalendarEvents = () => {
   // Layer colors: the API color is the default, a user pick persisted in
   // localStorage wins. Every consumer of `calendars` (event blocks, search
   // palette, layer list) gets the override for free, no per-site changes.
-  const calendarColorOverrides = useLocalStorage<Record<string, Calendar['color']>>(calendarLayerColorsKey, {})
+  const storedCalendarColorOverrides = useLocalStorage<unknown>(calendarLayerColorsKey, {})
+
+  const calendarColorOverrides = computed<Record<string, Calendar['color']>>(() => {
+    const stored = storedCalendarColorOverrides.value
+
+    if (!stored || typeof stored !== 'object' || Array.isArray(stored)) {
+      return {}
+    }
+
+    return Object.fromEntries(
+      Object.entries(stored).filter((entry): entry is [string, Calendar['color']] => isCalendarLayerColor(entry[1]))
+    )
+  })
 
   const calendars = computed<Calendar[]>(() =>
     (calendarsData.value ?? []).map(calendar => ({
@@ -62,7 +74,7 @@ const _useCalendarEvents = () => {
       return
     }
 
-    calendarColorOverrides.value = { ...calendarColorOverrides.value, [id]: color }
+    storedCalendarColorOverrides.value = { ...calendarColorOverrides.value, [id]: color }
   }
 
   // One cached fetch per visible range: revisiting a range renders instantly
