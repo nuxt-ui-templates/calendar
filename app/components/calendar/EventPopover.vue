@@ -116,6 +116,7 @@ const items = computed<ContextMenuItem[]>(() => [{
               :event="event"
               @save="updateEvent"
               @remove="onRemove"
+              @submit="closeEvent(event.id)"
               @escape="closeEvent(event.id)"
             />
           </template>

@@ -374,13 +374,15 @@ onUnmounted(() => {
         positions need the CSS one. Proximity, not mandatory: rows mount and
         unmount as the list virtualizes and a mandatory scroller re-snaps on
         every content change -->
+      <!-- `stable` holds the scrollbar's gutter whether or not the list overflows,
+        so the floating weekday bar reserves the exact same one for its columns -->
       <UScrollArea
         ref="scrollArea"
         :items="weeks"
         :virtualize="{ estimateSize: ROW_HEIGHT, skipMeasurement: true, overscan: 4, paddingStart: CHROME_HEIGHT, scrollPaddingStart: CHROME_HEIGHT, initialOffset }"
         :ui="{ item: 'snap-start' }"
         :style="{ scrollPaddingTop: `${CHROME_HEIGHT}px` }"
-        class="flex-1 snap-y snap-proximity [view-transition-name:calendar]"
+        class="flex-1 snap-y snap-proximity [scrollbar-gutter:stable] [view-transition-name:calendar]"
         @scroll="onScroll"
       >
         <template #default="{ item }">
@@ -393,7 +395,7 @@ onUnmounted(() => {
 
       <template #fallback>
         <div
-          class="flex-1 overflow-hidden"
+          class="flex-1 overflow-hidden [scrollbar-gutter:stable]"
           :style="{ paddingTop: `${CHROME_HEIGHT}px` }"
         >
           <CalendarMonthWeek
@@ -408,8 +410,10 @@ onUnmounted(() => {
 
     <!-- Under the labels so an incoming one slides over its blur, named for the
       same reason as the header: it has to sit above the grid snapshot during a
-      view transition to keep blurring it -->
-    <div class="absolute top-[calc(var(--ui-header-height)+0.5rem)] inset-x-0 z-30 h-10 grid grid-cols-7 glass-material bg-(--glass-bg) border-b border-default [view-transition-name:weekdays]">
+      view transition to keep blurring it. Its columns are the week rows': the
+      grid scrolls and is a scrollbar narrower, so the band reserves that same
+      gutter, or the weekdays drift right of the days below them -->
+    <div class="absolute top-[calc(var(--ui-header-height)+0.5rem)] inset-x-0 z-30 h-10 grid grid-cols-7 glass-material bg-(--glass-bg) border-b border-default overflow-hidden [scrollbar-gutter:stable] [view-transition-name:weekdays]">
       <span
         v-for="(weekday, index) in weekdays"
         :key="weekday"

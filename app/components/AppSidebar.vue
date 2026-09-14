@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { isSearchOpen, isSidebarOpen } = useCalendar()
-const { draft, createAtAnchor } = useEventDraft()
+const { draft } = useEventDraft()
 
 const route = useRoute()
 
@@ -40,29 +40,19 @@ watch([() => route.fullPath, () => !!draft.value, isSearchOpen], () => {
         <span class="text-xl font-bold text-highlighted">Calendar</span>
       </NuxtLink>
 
-      <UTheme :props="{ button: { size: 'sm', class: 'rounded-full!' } }">
-        <div class="ms-auto flex items-center gap-1.5">
-          <UTooltip
-            text="New event"
-            :kbds="['n']"
-          >
-            <UButton
-              icon="i-lucide-plus"
-              aria-label="New event"
-              @click="createAtAnchor()"
-            />
-          </UTooltip>
+      <div class="ms-auto flex items-center gap-1.5">
+        <NewEventMenu />
 
-          <UButton
-            icon="i-lucide-x"
-            color="neutral"
-            variant="soft"
-            aria-label="Close menu"
-            class="lg:hidden rounded-full"
-            @click="close"
-          />
-        </div>
-      </UTheme>
+        <UButton
+          icon="i-lucide-x"
+          color="neutral"
+          variant="soft"
+          size="sm"
+          aria-label="Close menu"
+          class="lg:hidden rounded-full"
+          @click="close"
+        />
+      </div>
     </template>
 
     <UButton
