@@ -121,10 +121,12 @@ onMounted(async () => {
     <!-- Snapped on the hour lines, so the grid settles on a whole hour under
       the chrome instead of cutting one in half. The padding matches the
       grid's, an hour then lands right below the header -->
+    <!-- `stable` holds the scrollbar's gutter whether or not the day overflows,
+      so the floating chrome reserves the exact same one for its columns -->
     <UScrollArea
       ref="container"
       :style="{ scrollPaddingTop: chromeOffset }"
-      class="flex-1 z-0 snap-y snap-proximity [view-transition-name:calendar]"
+      class="flex-1 z-0 snap-y snap-proximity [scrollbar-gutter:stable] [view-transition-name:calendar]"
     >
       <div
         data-week-grid
@@ -161,9 +163,13 @@ onMounted(async () => {
       transition name) would be all the blur has to sample. Named for the
       same reason as the header, so it stays above the grid snapshot during a
       view transition and keeps blurring it -->
+    <!-- The grid scrolls, so its columns are a scrollbar narrower than this
+      band and the day headers drifted right of their own columns by the last
+      one. Reserving the same gutter here lines them back up; the band keeps
+      painting full width, only the grids inside it are pulled in -->
     <div
       ref="chrome"
-      class="absolute top-[calc(var(--ui-header-height)+0.5rem)] inset-x-0 z-30 glass-material bg-(--glass-bg) border-b border-default [view-transition-name:weekdays]"
+      class="absolute top-[calc(var(--ui-header-height)+0.5rem)] inset-x-0 z-30 glass-material bg-(--glass-bg) border-b border-default overflow-hidden [scrollbar-gutter:stable] [view-transition-name:weekdays]"
     >
       <div
         class="grid"
