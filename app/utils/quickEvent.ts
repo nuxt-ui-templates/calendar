@@ -8,29 +8,37 @@ export interface QuickEvent {
   allDay: boolean
 }
 
-type Parsed = Awaited<ReturnType<typeof import('gpu-time')['parse']>>
-
 // Words a title spends leading into its time, "Movie at 7pm", and would be
 // left holding once the time is taken out
 const CONNECTORS = new Set(['at', 'on', 'in', 'from', 'for', 'until', 'till', 'to', 'by', '@', '-', 'the', 'this', 'next', 'every', 'and'])
 
-// What a phrase resolves to, so two phrases can be told to mean the same time
-function signature(result: Parsed): string {
-  return JSON.stringify([result.occurrences, result.rrules])
+// The title is the phrase with the time cut out of it. `spans` says which
+// characters the time was read from, so only the run leading into one sheds
+// its connectors and a place after it keeps its own, "Dinner at 8 at Nobu"
+function titleWithout(text: string, spans: { start: number, end: number }[]): string {
+  const parts: string[] = []
+  let cut = 0
+  for (const span of spans) {
+    parts.push(text.slice(cut, span.start))
+    cut = span.end
+  }
+  parts.push(text.slice(cut))
+
+  return parts
+    .flatMap((part, index) => {
+      const words = part.split(/\s+/).filter(Boolean)
+      if (index < parts.length - 1) {
+        while (words.length && CONNECTORS.has(words.at(-1)!.toLowerCase())) {
+          words.pop()
+        }
+      }
+      return words
+    })
+    .join(' ')
 }
 
-function silent(result: Parsed): boolean {
-  return !result.occurrences.length && !result.rrules.length
-}
-
-// Reads "Movie at 7pm on Friday" into a title and a time. `gpu-time` says
-// when the phrase happens but not which words said so, and the title is the
-// rest of the phrase: the fewest words that still resolve to the same time
-// are the time, provided what is left around them says no time of its own,
-// or "tomorrow at 9" would be titled "tomorrow" on the strength of "9" alone
-// resolving the same way until 9am has passed. Trimmed from the front and
-// then from the back, a location after the time survives, "Dinner at 8 at
-// Nobu". Returns `null` for a phrase with no time in it, the caller picks one
+// Reads "Movie at 7pm on Friday" into a title and a time. Returns `null` for a
+// phrase with no time in it, the caller picks one
 export async function parseQuickEvent(text: string): Promise<QuickEvent | null> {
   const phrase = text.trim()
   if (!phrase) {
@@ -38,63 +46,18 @@ export async function parseQuickEvent(text: string): Promise<QuickEvent | null> 
   }
 
   try {
-    const { parse, parseMany } = await import('gpu-time')
+    const { parse } = await import('gpu-time')
 
-    const context = {
+    const result = await parse(phrase, {
       reference: new Date().toISOString(),
       timeZone: getLocalTimeZone(),
       weekStart: 'MO' as const,
       limit: 1
-    }
+    })
 
-    const base = await parse(phrase, context)
-    const occurrence = base.occurrences[0]
+    const occurrence = result.occurrences[0]
     if (!occurrence) {
       return null
-    }
-
-    const expected = signature(base)
-    const words = phrase.split(/\s+/)
-
-    // The most words the front can spare: every candidate goes through the
-    // model in a single batch and the longest lead-in that holds is taken
-    const heads = words.slice(1).flatMap((_, index) => [
-      words.slice(0, index + 1).join(' '),
-      words.slice(index + 1).join(' ')
-    ])
-    const headResults = await parseMany(heads, context)
-
-    let leading = 0
-    for (let count = words.length - 1; count >= 1; count--) {
-      if (silent(headResults[(count - 1) * 2]!) && signature(headResults[(count - 1) * 2 + 1]!) === expected) {
-        leading = count
-        break
-      }
-    }
-
-    const prefix = words.slice(0, leading)
-    const core = words.slice(leading)
-
-    // Then the back, with the lead-in kept in the remainder being tested so
-    // the two halves are known to say nothing together either
-    const tails = core.slice(1).flatMap((_, index) => [
-      [...prefix, ...core.slice(core.length - index - 1)].join(' '),
-      core.slice(0, core.length - index - 1).join(' ')
-    ])
-    const tailResults = tails.length ? await parseMany(tails, context) : []
-
-    let trailing = 0
-    for (let count = core.length - 1; count >= 1; count--) {
-      if (silent(tailResults[(count - 1) * 2]!) && signature(tailResults[(count - 1) * 2 + 1]!) === expected) {
-        trailing = count
-        break
-      }
-    }
-
-    const suffix = core.slice(core.length - trailing)
-
-    while (prefix.length && CONNECTORS.has(prefix.at(-1)!.toLowerCase())) {
-      prefix.pop()
     }
 
     const start = new Date(occurrence.start)
@@ -105,7 +68,7 @@ export async function parseQuickEvent(text: string): Promise<QuickEvent | null> 
       : occurrence.allDay ? addDays(start, 1) : addMinutes(start, 60)
 
     return {
-      title: [...prefix, ...suffix].join(' '),
+      title: titleWithout(phrase, result.spans),
       start,
       end,
       allDay: occurrence.allDay
