@@ -112,7 +112,7 @@ const endsDate = useTemplateRef('endsDate')
 const calendarItems = computed(() => calendars.value.map(calendar => ({
   label: calendar.name,
   value: calendar.id,
-  chip: { color: calendar.color, size: 'md' }
+  chip: { color: calendar.color, size: 'md' as const }
 })))
 
 // The calendar reads as its colour alone, the way Apple Calendar puts it next
