@@ -112,7 +112,7 @@ const endsDate = useTemplateRef('endsDate')
 const calendarItems = computed(() => calendars.value.map(calendar => ({
   label: calendar.name,
   value: calendar.id,
-  chip: { color: calendar.color }
+  chip: { color: calendar.color, size: 'md' }
 })))
 
 // The calendar reads as its colour alone, the way Apple Calendar puts it next
@@ -246,7 +246,7 @@ watch(
               aria-label="Calendar"
               class="-me-2"
               :content="{ position: 'item-aligned', align: 'start' }"
-              :ui="{ base: 'rounded-sm', content: 'min-w-fit', itemLeadingChipSize: 'md' }"
+              :ui="{ base: 'rounded-sm', content: 'min-w-fit' }"
             >
               <template #leading>
                 <span
