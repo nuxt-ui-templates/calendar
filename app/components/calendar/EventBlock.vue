@@ -13,6 +13,7 @@ const { calendars, updateEvent } = useCalendarEvents()
 
 const event = computed(() => props.positioned.event)
 const calendar = computed(() => calendars.value.find(calendar => calendar.id === event.value.calendarId))
+const color = computed(() => calendar.value?.color ?? 'primary')
 
 const {
   dragging,
@@ -66,8 +67,8 @@ const compact = computed(() => props.positioned.height < 40)
       data-event
       class="absolute flex flex-col items-start overflow-hidden rounded-xs px-3 py-1 text-xs text-start transition-colors select-none touch-none focus-visible:outline-3"
       :class="[
-        eventBlockClasses[calendar?.color ?? 'primary'],
-        eventOutlineClasses[calendar?.color ?? 'primary'],
+        eventBlockClasses[color],
+        eventOutlineClasses[color],
         dragging ? 'z-20' : 'z-5'
       ]"
       :style="style"
@@ -80,7 +81,7 @@ const compact = computed(() => props.positioned.height < 40)
     >
       <span
         class="absolute inset-s-1 inset-y-1 w-1 rounded-full"
-        :class="calendarDotClasses[calendar?.color ?? 'primary']"
+        :class="calendarDotClasses[color]"
       />
 
       <span class="w-full font-medium truncate">{{ event.title }}</span>
