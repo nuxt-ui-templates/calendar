@@ -1,6 +1,8 @@
 import { addDays, startOfDay } from 'date-fns'
 import { FetchError } from 'ofetch'
 
+import { calendarLayerColorsKey, isCalendarLayerColor, resolveCalendarLayerColor } from '~/utils/calendar-colors'
+
 interface EventOverlay {
   created: Record<string, CalendarEvent>
   updated: Record<string, CalendarEvent>
@@ -29,7 +31,7 @@ const _useCalendarEvents = () => {
   const nuxtApp = useNuxtApp()
   const toast = useToast()
 
-  const { data: calendars } = useFetch<Calendar[]>('/api/calendars', {
+  const { data: calendarsData } = useFetch<Calendar[]>('/api/calendars', {
     key: 'calendars',
     default: () => [],
     getCachedData: (key, nuxtApp) => nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]
@@ -41,6 +43,38 @@ const _useCalendarEvents = () => {
     hiddenCalendars.value = hiddenCalendars.value.includes(id)
       ? hiddenCalendars.value.filter(hidden => hidden !== id)
       : [...hiddenCalendars.value, id]
+  }
+
+  // Layer colors: the API color is the default, a user pick persisted in
+  // localStorage wins. Every consumer of `calendars` (event blocks, search
+  // palette, layer list) gets the override for free, no per-site changes.
+  const storedCalendarColorOverrides = useLocalStorage<unknown>(calendarLayerColorsKey, {})
+
+  const calendarColorOverrides = computed<Record<string, Calendar['color']>>(() => {
+    const stored = storedCalendarColorOverrides.value
+
+    if (!stored || typeof stored !== 'object' || Array.isArray(stored)) {
+      return {}
+    }
+
+    return Object.fromEntries(
+      Object.entries(stored).filter((entry): entry is [string, Calendar['color']] => isCalendarLayerColor(entry[1]))
+    )
+  })
+
+  const calendars = computed<Calendar[]>(() =>
+    (calendarsData.value ?? []).map(calendar => ({
+      ...calendar,
+      color: resolveCalendarLayerColor(calendar.color, calendarColorOverrides.value[calendar.id])
+    }))
+  )
+
+  function setCalendarColor(id: string, color: Calendar['color']) {
+    if (!isCalendarLayerColor(color)) {
+      return
+    }
+
+    storedCalendarColorOverrides.value = { ...calendarColorOverrides.value, [id]: color }
   }
 
   // One cached fetch per visible range: revisiting a range renders instantly
@@ -350,6 +384,7 @@ const _useCalendarEvents = () => {
     calendars,
     hiddenCalendars,
     toggleCalendar,
+    setCalendarColor,
     events,
     eventsForDay,
     eventsForDays,
