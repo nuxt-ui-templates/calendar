@@ -1,4 +1,5 @@
-import type { H3Event } from 'h3'
+import type { RequestEvent } from 'nuxt/server'
+import { getCookie, setCookie } from 'nuxt/server'
 import { addDays, addMinutes, addWeeks, set, startOfWeek } from 'date-fns'
 
 // What the handlers need from an event collection, so a session can stand in
@@ -221,7 +222,7 @@ function touch(id: string, session: Store): Store {
   return session
 }
 
-export function useStore(event: H3Event): Store {
+export function useStore(event: RequestEvent): Store {
   const id = getCookie(event, SESSION_COOKIE)
   const session = id && sessions.get(id)
 
@@ -230,7 +231,7 @@ export function useStore(event: H3Event): Store {
 
 // Used by the write handlers: forking on the first mutation keeps the cookie
 // off read requests, where the server rendered response could not return it
-export function useEditableStore(event: H3Event): Store {
+export function useEditableStore(event: RequestEvent): Store {
   const cookie = getCookie(event, SESSION_COOKIE)
   const session = cookie && sessions.get(cookie)
 

@@ -1,5 +1,7 @@
+import { defineEventHandler, readValidatedBody, setResponseStatus } from 'nuxt/server'
+
 export default defineEventHandler(async (event): Promise<CalendarEvent> => {
-  const body = await readValidatedBody(event, eventSchema.parse)
+  const body = await readValidatedBody(event, eventSchema)
 
   useEditableStore(event).events.set(body.id, body)
 

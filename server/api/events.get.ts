@@ -1,3 +1,4 @@
+import { defineEventHandler, getValidatedQuery } from 'nuxt/server'
 import { z } from 'zod'
 import { millisecondsInDay } from 'date-fns/constants'
 
@@ -27,7 +28,7 @@ function boundsOf(event: CalendarEvent): { start: number, end: number } {
 }
 
 export default defineEventHandler(async (event): Promise<CalendarEvent[]> => {
-  const query = await getValidatedQuery(event, querySchema.parse)
+  const query = await getValidatedQuery(event, querySchema)
   const start = new Date(query.start).getTime()
   const end = new Date(query.end).getTime()
 
