@@ -7,7 +7,7 @@ definePageMeta({
   // remount the page (and reset the month view scroll) on every URL sync
   key: route => route.params.view as string,
   validate(route) {
-    if (!['day', 'week', 'month'].includes(route.params.view as string)) {
+    if (!['day', 'week', 'month', 'year'].includes(route.params.view as string)) {
       return false
     }
 
@@ -33,8 +33,14 @@ const { online, queue } = useCalendarEvents()
 const views = [
   { label: 'Day', value: 'day' },
   { label: 'Week', value: 'week' },
-  { label: 'Month', value: 'month' }
+  { label: 'Month', value: 'month' },
+  { label: 'Year', value: 'year' }
 ] satisfies TabsItem[]
+
+// The room the title has, handed to the month labels that dock on it so they
+// cut off where it does rather than running under the switcher
+const heading = useTemplateRef('heading')
+const { width: headingWidth } = useElementSize(heading)
 
 function onViewChange(value: string | number) {
   navigateTo(pathFor(date.value, value as CalendarView))
@@ -44,6 +50,7 @@ function onViewChange(value: string | number) {
 <template>
   <div
     class="relative flex-1 flex flex-col overflow-hidden -z-1"
+    :style="headingWidth ? { '--heading-width': `${headingWidth}px` } : undefined"
   >
     <!-- Floating over the views so their content scrolls behind the blur, its
       own view transition name keeps it above the sliding grid snapshot (which
@@ -85,6 +92,7 @@ function onViewChange(value: string | number) {
           before the leaving one starts out, always opaque under a partly
           transparent copy of itself -->
         <h1
+          ref="heading"
           class="flex items-baseline gap-1.5 text-xl sm:text-2xl tracking-tight min-w-0 flex-1 transition-opacity duration-0"
           :class="view === 'month' && monthLabelsVisible ? 'opacity-0 delay-150' : 'opacity-100'"
         >
@@ -93,9 +101,9 @@ function onViewChange(value: string | number) {
         </h1>
       </div>
 
-      <!-- Down to the initial below `md`, where the header cannot spare the
-        width for the labels. The triggers give up their padding for it, three
-        of them share 5rem there, 6rem on a touch screen where they stand as
+      <!-- Down to the initial below `sm`, where the header cannot spare the
+        width for the labels. The triggers give up their padding for it, four
+        of them share 6rem there, 8rem on a touch screen where they stand as
         tall as the buttons beside them -->
       <UTabs
         :items="views"
@@ -103,7 +111,7 @@ function onViewChange(value: string | number) {
         :model-value="view"
         color="neutral"
         size="sm"
-        class="mx-auto w-20 max-sm:pointer-coarse:w-24 sm:w-42 lg:w-48"
+        class="mx-auto w-24 max-sm:pointer-coarse:w-32 sm:w-52 sm:pointer-coarse:w-56 lg:w-60"
         :ui="{ list: [glassClasses, 'ring-0'], trigger: 'p-1 lg:p-1.5 pointer-coarse:py-1 pointer-coarse:text-sm' }"
         @update:model-value="onViewChange"
       >
@@ -179,6 +187,7 @@ function onViewChange(value: string | number) {
       painting above the translucent header -->
     <div class="flex-1 flex flex-col min-h-0">
       <CalendarMonthView v-if="view === 'month'" />
+      <CalendarYearView v-else-if="view === 'year'" />
       <CalendarWeekView v-else />
     </div>
 

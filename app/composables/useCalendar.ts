@@ -4,7 +4,7 @@ const _useCalendar = () => {
   const route = useRoute()
 
   const view = computed<CalendarView>(() => {
-    return ['day', 'month'].includes(route.params.view as string) ? route.params.view as CalendarView : 'week'
+    return ['day', 'month', 'year'].includes(route.params.view as string) ? route.params.view as CalendarView : 'week'
   })
 
   const date = computed<CalendarDate>(() => {
@@ -28,6 +28,10 @@ const _useCalendar = () => {
   const monthLabelsVisible = refAutoReset(false, 600)
 
   const title = computed<RangeTitle>(() => {
+    if (view.value === 'year') {
+      return { months: String(date.value.year), year: '' }
+    }
+
     if (view.value === 'month') {
       const focus = visibleMonth.value ?? date.value
 
@@ -44,7 +48,14 @@ const _useCalendar = () => {
   // single column the width of the grid, so there is no beside to stand in
   const formSide = computed<'bottom' | 'right'>(() => view.value === 'day' ? 'bottom' : 'right')
 
-  const step = computed(() => view.value === 'month' ? { months: 1 } : { days: view.value === 'day' ? 1 : 7 })
+  const step = computed(() => {
+    switch (view.value) {
+      case 'year': return { years: 1 }
+      case 'month': return { months: 1 }
+      case 'week': return { days: 7 }
+      default: return { days: 1 }
+    }
+  })
 
   const prevDate = computed(() => date.value.subtract(step.value))
   const nextDate = computed(() => date.value.add(step.value))
@@ -107,6 +118,7 @@ const _useCalendar = () => {
     d: unlessEditing(() => navigateTo(pathFor(date.value, 'day'))),
     w: unlessEditing(() => navigateTo(pathFor(date.value, 'week'))),
     m: unlessEditing(() => navigateTo(pathFor(date.value, 'month'))),
+    y: unlessEditing(() => navigateTo(pathFor(date.value, 'year'))),
     // The draft composable reads this one, so it is resolved inside the
     // handler rather than at setup, where the two would wait on each other
     n: unlessEditing(() => useEventDraft().createAtAnchor()),

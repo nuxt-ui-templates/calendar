@@ -69,8 +69,9 @@ const _useCalendarEvents = () => {
 
   onNuxtReady(() => {
     watch(range, () => {
-      // The month view streams events in chunks as it scrolls instead
-      if (view.value === 'month') {
+      // The month view streams events in chunks as it scrolls instead, and the
+      // year view only holds the month it zooms into
+      if (view.value === 'month' || view.value === 'year') {
         return
       }
 

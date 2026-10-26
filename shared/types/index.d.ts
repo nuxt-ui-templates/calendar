@@ -1,4 +1,4 @@
-export type CalendarView = 'day' | 'week' | 'month'
+export type CalendarView = 'day' | 'week' | 'month' | 'year'
 
 export interface DateRange {
   start: Date

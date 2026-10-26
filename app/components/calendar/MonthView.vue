@@ -429,7 +429,8 @@ onUnmounted(() => {
       moves, slower on the way out. Docked, one lands on the header title, so
       it starts where the title does: past the menu button and its gap below
       `lg`, wider on a touch screen where the button is, on the header padding
-      above -->
+      above. It cuts off where the title does too, at the width the page
+      hands down -->
     <div
       class="absolute inset-x-0 bottom-0 z-40 overflow-hidden pointer-events-none transition-opacity"
       :class="monthLabelsVisible ? 'opacity-100 duration-150' : 'opacity-0 duration-300'"
@@ -438,10 +439,10 @@ onUnmounted(() => {
       <div
         v-for="label in labels"
         :key="label.key"
-        class="absolute top-0 inset-s-13 max-lg:pointer-coarse:inset-s-15 lg:inset-s-4 flex items-center gap-1.5 h-8 text-xl sm:text-2xl tracking-tight will-change-[translate]"
+        class="absolute top-0 inset-s-13 max-lg:pointer-coarse:inset-s-15 lg:inset-s-4 max-w-(--heading-width) flex items-center gap-1.5 h-8 text-xl sm:text-2xl tracking-tight will-change-[translate]"
         :style="{ translate: `0 ${label.y}px` }"
       >
-        <span class="font-bold text-highlighted">{{ label.month }}</span>
+        <span class="font-bold text-highlighted truncate">{{ label.month }}</span>
         <!-- Dropped where the header title drops it, or the docked one would
           hand a year over to a title that has none -->
         <span class="font-normal text-muted hidden sm:inline">{{ label.year }}</span>
