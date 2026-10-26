@@ -60,11 +60,6 @@
   --control-bg: rgb(0 0 0 / 0.05);
   --control-bg-hover: rgb(0 0 0 / 0.09);
 
-  /* A well cut into the glass, for a track the controls in it read as raised
-     out of. Black in both modes, where `--control-bg` turns white on dark
-     glass and matches this on light */
-  --well-bg: rgb(0 0 0 / 0.05);
-
   /* A control floating on the chrome as its own drop of glass, the way the
      iOS toolbar draws them. Lit along its top edge and set off by a soft
      shadow, so it reads as raised where `--control-bg` reads as painted on */
@@ -81,10 +76,6 @@
 
   --control-bg: rgb(255 255 255 / 0.06);
   --control-bg-hover: rgb(255 255 255 / 0.10);
-
-  /* Deeper than the light one: the pane behind it is already dark, so the
-     same alpha would not read as a well at all */
-  --well-bg: rgb(0 0 0 / 0.22);
 
   --glass-control-bg: rgb(255 255 255 / 0.08);
   --glass-control-bg-hover: rgb(255 255 255 / 0.14);
