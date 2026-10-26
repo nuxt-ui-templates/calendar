@@ -49,7 +49,7 @@ watch([() => route.fullPath, () => !!draft.value, isSearchOpen], () => {
           variant="soft"
           size="sm"
           aria-label="Close menu"
-          class="lg:hidden rounded-full"
+          class="lg:hidden"
           @click="close"
         />
       </div>
