@@ -43,16 +43,13 @@ watch([() => route.fullPath, () => !!draft.value, isSearchOpen], () => {
       <div class="ms-auto flex items-center gap-1.5">
         <NewEventMenu />
 
-        <!-- The size and the glass of the header button that opened it -->
         <UButton
           icon="i-lucide-x"
           color="neutral"
           variant="soft"
           size="sm"
           aria-label="Close menu"
-          class="lg:hidden rounded-full pointer-coarse:p-2"
-          :class="glassButtonClasses"
-          :ui="{ leadingIcon: 'pointer-coarse:size-5' }"
+          class="lg:hidden rounded-full"
           @click="close"
         />
       </div>
@@ -63,8 +60,6 @@ watch([() => route.fullPath, () => !!draft.value, isSearchOpen], () => {
       color="neutral"
       variant="soft"
       label="Search"
-      class="pointer-coarse:py-2"
-      :class="glassButtonClasses"
       @click="isSearchOpen = true"
     >
       <template #trailing>

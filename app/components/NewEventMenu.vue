@@ -65,15 +65,15 @@ async function onSubmit() {
     :ui="{ content: 'p-2 w-72 max-w-[calc(100vw-1rem)]' }"
   >
     <UTooltip text="New event">
-      <!-- Glass tinted with the accent, lit and shadowed like the neutral
-        drops beside it -->
+      <!-- Floating, a 44px drop with the header's icon size, out of reach of
+        the touch sizes the app config gives `sm` -->
       <UButton
         icon="i-lucide-plus"
-        size="sm"
+        :size="floating ? 'xl' : 'sm'"
         aria-label="New event"
-        class="rounded-full glass-control"
-        :class="floating ? 'p-3' : 'pointer-coarse:p-2'"
-        :ui="{ leadingIcon: floating ? 'size-5' : 'pointer-coarse:size-5' }"
+        class="rounded-full"
+        :class="floating && 'p-3'"
+        :ui="floating ? { leadingIcon: 'size-5' } : undefined"
       />
     </UTooltip>
 

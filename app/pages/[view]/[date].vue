@@ -61,18 +61,16 @@ function onViewChange(value: string | number) {
         same spot at every width the menu button shows at and the month view
         has a single offset to dock its labels on -->
       <div class="flex items-center gap-2 min-w-0 flex-1">
-        <!-- Below `lg` the sidebar is a slideover, this is what opens it. On a
-          touch screen the header controls grow to 36px, a size a finger can
-          land on, the month labels dock past it at that width too -->
+        <!-- Below `lg` the sidebar is a slideover, this is what opens it. It
+          grows a size on a touch screen, and the month labels dock past it at
+          that width too -->
         <UButton
           icon="i-lucide-menu"
           color="neutral"
           variant="soft"
           size="sm"
           aria-label="Open menu"
-          class="lg:hidden shrink-0 rounded-full pointer-coarse:p-2"
-          :class="glassButtonClasses"
-          :ui="{ leadingIcon: 'pointer-coarse:size-5' }"
+          class="lg:hidden shrink-0 rounded-full"
           @click="isSidebarOpen = true"
         />
 
@@ -104,7 +102,7 @@ function onViewChange(value: string | number) {
         color="neutral"
         size="sm"
         class="mx-auto w-20 max-sm:pointer-coarse:w-24 sm:w-42 lg:w-48"
-        :ui="{ list: [glassClasses, 'ring-0'], trigger: 'p-1 lg:p-1.5 pointer-coarse:py-1 pointer-coarse:text-sm' }"
+        :ui="{ trigger: 'p-1 lg:p-1.5' }"
         @update:model-value="onViewChange"
       >
         <template #default="{ item }">
@@ -130,11 +128,8 @@ function onViewChange(value: string | number) {
 
         <!-- One drop of glass for the three of them, the way iOS groups the
           actions of a toolbar -->
-        <UTheme :props="{ button: { color: 'neutral', variant: 'ghost', size: 'sm', class: 'rounded-full pointer-coarse:p-2', ui: { leadingIcon: 'pointer-coarse:size-5' } } }">
-          <div
-            class="flex items-center rounded-full"
-            :class="glassClasses"
-          >
+        <UTheme :props="{ button: { color: 'neutral', variant: 'ghost', size: 'sm', class: 'rounded-full' } }">
+          <UFieldGroup>
             <UTooltip
               text="Previous"
               :kbds="['arrowleft']"
@@ -153,7 +148,7 @@ function onViewChange(value: string | number) {
             >
               <UButton
                 label="Today"
-                class="hidden sm:inline-flex rounded-full pointer-coarse:py-2 pointer-coarse:text-sm"
+                class="hidden sm:inline-flex rounded-full"
                 :to="pathFor(todayDate())"
               />
             </UTooltip>
@@ -169,7 +164,7 @@ function onViewChange(value: string | number) {
                 @click="setDirection('right')"
               />
             </UTooltip>
-          </div>
+          </UFieldGroup>
         </UTheme>
       </div>
     </header>
@@ -192,8 +187,8 @@ function onViewChange(value: string | number) {
         label="Today"
         color="neutral"
         variant="soft"
-        class="sm:hidden rounded-full px-4 py-2.5 text-base glass-material"
-        :class="glassButtonClasses"
+        size="xl"
+        class="sm:hidden rounded-full px-4 py-2.5 glass-material"
         :to="pathFor(todayDate())"
       />
 
