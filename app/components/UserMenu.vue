@@ -183,7 +183,7 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
       variant="ghost"
       block
       trailing-icon="i-lucide-chevrons-up-down"
-      class="data-[state=open]:bg-(--control-bg)"
+      class="data-[state=open]:bg-(--control-bg) pointer-coarse:py-2"
       :ui="{ trailingIcon: 'text-dimmed' }"
     />
 

@@ -61,14 +61,18 @@ function onViewChange(value: string | number) {
         same spot at every width the menu button shows at and the month view
         has a single offset to dock its labels on -->
       <div class="flex items-center gap-2 min-w-0 flex-1">
-        <!-- Below `lg` the sidebar is a slideover, this is what opens it -->
+        <!-- Below `lg` the sidebar is a slideover, this is what opens it. On a
+          touch screen the header controls grow to 36px, a size a finger can
+          land on, the month labels dock past it at that width too -->
         <UButton
           icon="i-lucide-menu"
           color="neutral"
           variant="soft"
           size="sm"
           aria-label="Open menu"
-          class="lg:hidden shrink-0 rounded-full"
+          class="lg:hidden shrink-0 rounded-full pointer-coarse:p-2"
+          :class="glassButtonClasses"
+          :ui="{ leadingIcon: 'pointer-coarse:size-5' }"
           @click="isSidebarOpen = true"
         />
 
@@ -91,15 +95,16 @@ function onViewChange(value: string | number) {
 
       <!-- Down to the initial below `md`, where the header cannot spare the
         width for the labels. The triggers give up their padding for it, three
-        of them share 5rem there -->
+        of them share 5rem there, 6rem on a touch screen where they stand as
+        tall as the buttons beside them -->
       <UTabs
         :items="views"
         :content="false"
         :model-value="view"
         color="neutral"
         size="sm"
-        class="mx-auto w-20 sm:w-42 lg:w-48"
-        :ui="{ trigger: 'p-1 lg:p-1.5' }"
+        class="mx-auto w-20 max-sm:pointer-coarse:w-24 sm:w-42 lg:w-48"
+        :ui="{ list: [glassClasses, 'ring-0'], trigger: 'p-1 lg:p-1.5 pointer-coarse:py-1 pointer-coarse:text-sm' }"
         @update:model-value="onViewChange"
       >
         <template #default="{ item }">
@@ -123,8 +128,13 @@ function onViewChange(value: string | number) {
           />
         </UTooltip>
 
-        <UTheme :props="{ button: { color: 'neutral', variant: 'soft', size: 'sm', class: 'rounded-full' } }">
-          <div class="flex items-center gap-1">
+        <!-- One drop of glass for the three of them, the way iOS groups the
+          actions of a toolbar -->
+        <UTheme :props="{ button: { color: 'neutral', variant: 'ghost', size: 'sm', class: 'rounded-full pointer-coarse:p-2', ui: { leadingIcon: 'pointer-coarse:size-5' } } }">
+          <div
+            class="flex items-center rounded-full"
+            :class="glassClasses"
+          >
             <UTooltip
               text="Previous"
               :kbds="['arrowleft']"
@@ -143,7 +153,7 @@ function onViewChange(value: string | number) {
             >
               <UButton
                 label="Today"
-                class="hidden sm:inline-flex rounded-full"
+                class="hidden sm:inline-flex rounded-full pointer-coarse:py-2 pointer-coarse:text-sm"
                 :to="pathFor(todayDate())"
               />
             </UTooltip>

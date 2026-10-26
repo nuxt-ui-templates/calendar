@@ -29,7 +29,7 @@ Apple Calendar-inspired application with day, week and month views, drag and dro
 - **Multiple calendars** - Color coding with cookie-persisted visibility toggles, plus a mini calendar with hover prefetching
 - **Shared contract** - The event types, the zod schema the Nitro routes validate against and the floating local datetime helper both sides write with all live in `shared/`, so client and server never disagree on what a date string means
 - **Keyboard shortcuts** - `t` for today, `d`/`w`/`m` to switch views, `n` for a new event, arrow keys to navigate
-- **Responsive layout** - Small screens show a 3-day window and the sidebar becomes a slideover
+- **Responsive layout** - Small screens show a 3-day window and the sidebar becomes a slideover, with controls sized up for touch
 
 ## Quick Start
 

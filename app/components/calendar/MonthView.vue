@@ -428,7 +428,8 @@ onUnmounted(() => {
       also its clip line) down over the grid. Quick to come back once the list
       moves, slower on the way out. Docked, one lands on the header title, so
       it starts where the title does: past the menu button and its gap below
-      `lg`, on the header padding above -->
+      `lg`, wider on a touch screen where the button is, on the header padding
+      above -->
     <div
       class="absolute inset-x-0 bottom-0 z-40 overflow-hidden pointer-events-none transition-opacity"
       :class="monthLabelsVisible ? 'opacity-100 duration-150' : 'opacity-0 duration-300'"
@@ -437,7 +438,7 @@ onUnmounted(() => {
       <div
         v-for="label in labels"
         :key="label.key"
-        class="absolute top-0 inset-s-13 lg:inset-s-4 flex items-center gap-1.5 h-8 text-xl sm:text-2xl tracking-tight will-change-[translate]"
+        class="absolute top-0 inset-s-13 max-lg:pointer-coarse:inset-s-15 lg:inset-s-4 flex items-center gap-1.5 h-8 text-xl sm:text-2xl tracking-tight will-change-[translate]"
         :style="{ translate: `0 ${label.y}px` }"
       >
         <span class="font-bold text-highlighted">{{ label.month }}</span>

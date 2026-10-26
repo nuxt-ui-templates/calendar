@@ -59,11 +59,14 @@ async function onSubmit() {
     :ui="{ content: 'p-2 w-72 max-w-[calc(100vw-1rem)]' }"
   >
     <UTooltip text="New event">
+      <!-- Glass tinted with the accent, lit and shadowed like the neutral
+        drops beside it -->
       <UButton
         icon="i-lucide-plus"
         size="sm"
         aria-label="New event"
-        class="rounded-full"
+        class="rounded-full glass-control pointer-coarse:p-2"
+        :ui="{ leadingIcon: 'pointer-coarse:size-5' }"
       />
     </UTooltip>
 
