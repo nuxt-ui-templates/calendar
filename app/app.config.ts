@@ -17,7 +17,7 @@ const overlay = 'backdrop-blur-(--overlay-blur) bg-(--glass-bg)'
 // A control floating on the chrome as its own drop of glass, the way the iOS
 // toolbar draws them. `glass-control` carries the light and the shadow apart
 // from the fill, so a hover can still change the fill through a color utility
-const glass = 'bg-(--glass-control-bg) glass-control'
+const glass = 'rounded-full bg-(--glass-control-bg) glass-control'
 
 export default defineAppConfig({
   ui: {
@@ -43,10 +43,11 @@ export default defineAppConfig({
         // beside it
         color: 'primary',
         variant: 'solid',
-        class: 'glass-control'
+        class: 'rounded-full glass-control'
       }, {
-        // A size up on a touch screen, where a control is a target for a finger
-        size: 'sm',
+        // Up to 36px on a touch screen, a size a finger can land on, which is
+        // the `lg` box with the icon it draws
+        size: ['sm', 'md'],
         square: true,
         class: {
           base: 'pointer-coarse:p-2',
@@ -61,11 +62,12 @@ export default defineAppConfig({
         square: false,
         class: 'pointer-coarse:py-2'
       }, {
-        // A group is one drop of glass with its buttons standing in it, so each
-        // keeps its own round highlight rather than the theme joining them into
-        // a single bar
+        // A group is one drop of glass with ghost buttons standing in it, so
+        // each keeps its own round highlight rather than the theme joining
+        // them into a single bar
         fieldGroup: 'horizontal',
-        class: 'not-only:first:rounded-full not-only:last:rounded-full not-last:not-first:rounded-full'
+        variant: 'ghost',
+        class: 'rounded-full not-only:first:rounded-full not-only:last:rounded-full not-last:not-first:rounded-full'
       }]
     },
     checkbox: {
@@ -101,7 +103,7 @@ export default defineAppConfig({
       }
     },
     fieldGroup: {
-      base: `rounded-full ${glass}`
+      base: glass
     },
     contextMenu: {
       slots: {
@@ -274,7 +276,7 @@ export default defineAppConfig({
         // drop of glass like the buttons beside it
         variant: {
           pill: {
-            list: `rounded-full gap-0.5 ${glass}`,
+            list: `gap-0.5 ${glass}`,
             indicator: 'rounded-full'
           }
         }

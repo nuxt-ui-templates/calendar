@@ -71,7 +71,6 @@ async function onSubmit() {
         icon="i-lucide-plus"
         :size="floating ? 'xl' : 'sm'"
         aria-label="New event"
-        class="rounded-full"
         :class="floating && 'p-3'"
         :ui="floating ? { leadingIcon: 'size-5' } : undefined"
       />
