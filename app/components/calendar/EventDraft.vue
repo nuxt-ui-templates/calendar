@@ -97,13 +97,13 @@ watch(pendingScroll, reveal)
           variant === 'block'
             ? [eventBlockClasses[color], 'absolute z-20 flex flex-col items-start overflow-hidden rounded-xs px-3 py-1 text-xs text-start']
             : [
-              'flex items-center gap-1.5 min-w-0 rounded-full px-1.5 py-0.5 text-xs',
+              'flex items-center gap-1.5 min-w-0 rounded-full px-1.5 py-0.5 max-sm:rounded-sm max-sm:px-1 text-xs',
               draft!.allDay
                 ? eventBlockClasses[color]
                 : ['text-default data-active:bg-(--control-bg)', eventChipCompactClasses[color]]
             ],
-          continuesBefore && 'rounded-s-none',
-          continuesAfter && 'rounded-e-none'
+          continuesBefore && 'rounded-s-none max-sm:rounded-s-none',
+          continuesAfter && 'rounded-e-none max-sm:rounded-e-none'
         ]"
         @pointerdown.stop
       >
@@ -128,9 +128,10 @@ watch(pendingScroll, reveal)
           :class="calendarDotClasses[color]"
         />
 
+        <!-- Fading out on a phone like the chip it stands in for -->
         <span
           class="font-medium truncate"
-          :class="variant === 'block' && 'w-full'"
+          :class="variant === 'block' ? 'w-full' : 'max-sm:flex-1 max-sm:text-clip max-sm:[mask-image:linear-gradient(to_right,black_calc(100%-0.75rem),transparent)]'"
         >{{ title }}</span>
 
         <span

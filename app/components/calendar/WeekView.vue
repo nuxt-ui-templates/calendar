@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { breakpointsTailwind } from '@vueuse/core'
-import { differenceInCalendarDays, isSameDay, isToday } from 'date-fns'
+import { differenceInCalendarDays, isSameDay, isToday, isWeekend } from 'date-fns'
 
 const { date, range } = useCalendar()
 const { eventsForDay, eventsForDays, status } = useCalendarEvents()
@@ -181,6 +181,7 @@ onMounted(async () => {
           v-for="day in days"
           :key="day.getTime()"
           class="flex items-center justify-center gap-1 py-2 text-sm border-s border-default"
+          :class="isWeekend(day) && 'bg-(--weekend-bg)'"
         >
           <span class="text-muted">
             {{ formatWeekday(day) }}
@@ -212,6 +213,7 @@ onMounted(async () => {
           :key="`all-day-${day.getTime()}`"
           :data-date="isoDate(day)"
           class="row-span-full border-s border-default"
+          :class="isWeekend(day) && 'bg-(--weekend-bg)'"
           :style="{ gridColumn: index + 2 }"
           @pointerdown="onGridPointerdown($event, { kind: 'allDay', day })"
           @dblclick="onGridDblclick($event, { kind: 'allDay', day })"

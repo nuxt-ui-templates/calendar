@@ -65,6 +65,11 @@
      glass and matches this on light */
   --well-bg: rgb(0 0 0 / 0.05);
 
+  /* Saturday and Sunday, set a shade apart so the week reads at a glance. The
+     glass bars over the grid wear it too, or the stripe would show through
+     them blurred rather than run on through them */
+  --weekend-bg: rgb(0 0 0 / 0.025);
+
   /* A control floating on the chrome as its own drop of glass, the way the
      iOS toolbar draws them. Lit along its top edge and set off by a soft
      shadow, so it reads as raised where `--control-bg` reads as painted on */
@@ -85,6 +90,9 @@
   /* Deeper than the light one: the pane behind it is already dark, so the
      same alpha would not read as a well at all */
   --well-bg: rgb(0 0 0 / 0.22);
+
+  /* Darker rather than lighter: white over the near-black page reads as gray */
+  --weekend-bg: rgb(0 0 0 / 0.12);
 
   --glass-control-bg: rgb(255 255 255 / 0.08);
   --glass-control-bg-hover: rgb(255 255 255 / 0.14);

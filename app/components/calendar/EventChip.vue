@@ -30,7 +30,7 @@ const moving = computed(() => movingId.value === props.event.id)
       v-bind="$attrs"
       type="button"
       data-event
-      class="select-none flex items-center gap-1.5 min-w-0 rounded-full px-1.5 py-0.5 text-xs text-start transition-colors focus-visible:outline-3"
+      class="select-none flex items-center gap-1.5 min-w-0 rounded-full px-1.5 py-0.5 max-sm:rounded-sm max-sm:px-1 text-xs text-start transition-colors focus-visible:outline-3"
       :class="[
         eventOutlineClasses[color],
         event.allDay
@@ -58,7 +58,11 @@ const moving = computed(() => movingId.value === props.event.id)
         :class="calendarDotClasses[color]"
       />
 
-      <span class="font-medium truncate">{{ event.title }}</span>
+      <!-- A phone cell fits a handful of letters, and an ellipsis would spend
+        three of them, so the title runs to the edge and fades out there the
+        way the iOS chips do. It takes the width so a short one never reaches
+        the fade -->
+      <span class="font-medium truncate max-sm:flex-1 max-sm:text-clip max-sm:[mask-image:linear-gradient(to_right,black_calc(100%-0.75rem),transparent)]">{{ event.title }}</span>
       <!-- `data-time` so a call site in a tight spot can hide it from outside -->
       <span
         v-if="showTime && !event.allDay"
