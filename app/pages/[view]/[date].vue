@@ -70,7 +70,7 @@ function onViewChange(value: string | number) {
           variant="soft"
           size="sm"
           aria-label="Open menu"
-          class="lg:hidden shrink-0 rounded-full"
+          class="lg:hidden shrink-0"
           @click="isSidebarOpen = true"
         />
 
@@ -128,7 +128,7 @@ function onViewChange(value: string | number) {
 
         <!-- One drop of glass for the three of them, the way iOS groups the
           actions of a toolbar -->
-        <UTheme :props="{ button: { color: 'neutral', variant: 'ghost', size: 'sm', class: 'rounded-full' } }">
+        <UTheme :props="{ button: { color: 'neutral', variant: 'ghost', size: 'sm' } }">
           <UFieldGroup>
             <UTooltip
               text="Previous"
@@ -148,7 +148,7 @@ function onViewChange(value: string | number) {
             >
               <UButton
                 label="Today"
-                class="hidden sm:inline-flex rounded-full"
+                class="hidden sm:inline-flex"
                 :to="pathFor(todayDate())"
               />
             </UTooltip>

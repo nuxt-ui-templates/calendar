@@ -63,7 +63,6 @@ async function onSubmit() {
         icon="i-lucide-plus"
         size="sm"
         aria-label="New event"
-        class="rounded-full"
       />
     </UTooltip>
 
