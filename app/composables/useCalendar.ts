@@ -60,6 +60,13 @@ const _useCalendar = () => {
     }
   }
 
+  // One step back or forward with the slide that goes with it, for the arrow
+  // keys and a swipe alike
+  function go(direction: 'left' | 'right') {
+    setDirection(direction)
+    navigateTo(pathFor(direction === 'left' ? prevDate.value : nextDate.value))
+  }
+
   const nuxtApp = useNuxtApp()
   nuxtApp.hook('page:view-transition:start', (transition) => {
     // An aborted transition (hidden tab, rapid navigation) rejects `finished`
@@ -103,14 +110,8 @@ const _useCalendar = () => {
     // The draft composable reads this one, so it is resolved inside the
     // handler rather than at setup, where the two would wait on each other
     n: unlessEditing(() => useEventDraft().createAtAnchor()),
-    arrowleft: unlessEditing(() => {
-      setDirection('left')
-      navigateTo(pathFor(prevDate.value))
-    }),
-    arrowright: unlessEditing(() => {
-      setDirection('right')
-      navigateTo(pathFor(nextDate.value))
-    })
+    arrowleft: unlessEditing(() => go('left')),
+    arrowright: unlessEditing(() => go('right'))
   })
 
   return {
@@ -125,6 +126,7 @@ const _useCalendar = () => {
     nextDate,
     pathFor,
     setDirection,
+    go,
     isSidebarOpen,
     isSearchOpen
   }

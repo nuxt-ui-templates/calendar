@@ -1,4 +1,10 @@
 <script setup lang="ts">
+// Floating, it is the phone toolbar's button down in the corner, a size up and
+// opening upwards from there
+const props = defineProps<{
+  floating?: boolean
+}>()
+
 const { createAtAnchor, createFromQuick } = useEventDraft()
 
 const open = ref(false)
@@ -10,17 +16,17 @@ const loading = ref(false)
 // losing the focus is dismissed, and dismissing a draft's form saves it
 let handedOff = false
 
-const content = {
-  side: 'bottom',
-  align: 'start',
-  alignOffset: -14,
+const content = computed(() => ({
+  side: props.floating ? 'top' : 'bottom',
+  align: props.floating ? 'end' : 'start',
+  alignOffset: props.floating ? 0 : -14,
   onCloseAutoFocus: (event: Event) => {
     if (handedOff) {
       event.preventDefault()
       handedOff = false
     }
   }
-} as const
+}) as const)
 
 function handOff(create: () => Promise<void>) {
   handedOff = true
@@ -65,8 +71,9 @@ async function onSubmit() {
         icon="i-lucide-plus"
         size="sm"
         aria-label="New event"
-        class="rounded-full glass-control pointer-coarse:p-2"
-        :ui="{ leadingIcon: 'pointer-coarse:size-5' }"
+        class="rounded-full glass-control"
+        :class="floating ? 'p-3' : 'pointer-coarse:p-2'"
+        :ui="{ leadingIcon: floating ? 'size-5' : 'pointer-coarse:size-5' }"
       />
     </UTooltip>
 
