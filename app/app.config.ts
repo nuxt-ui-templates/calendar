@@ -35,6 +35,12 @@ export default defineAppConfig({
         variant: 'soft',
         class: `${glass} hover:bg-(--glass-control-bg-hover) active:bg-(--glass-control-bg-hover) disabled:bg-(--glass-control-bg) aria-disabled:bg-(--glass-control-bg)`
       }, {
+        // A control painted on the chrome rather than floating over it, the
+        // flat pill the macOS toolbar draws its date stepper with
+        color: 'neutral',
+        variant: 'subtle',
+        class: 'rounded-full ring-0 bg-(--control-bg) hover:bg-(--control-bg-hover) active:bg-(--control-bg-hover) disabled:bg-(--control-bg) aria-disabled:bg-(--control-bg)'
+      }, {
         color: 'neutral',
         variant: 'ghost',
         class: 'hover:bg-(--control-bg) active:bg-(--control-bg)'
@@ -61,13 +67,6 @@ export default defineAppConfig({
         size: 'md',
         square: false,
         class: 'pointer-coarse:py-2'
-      }, {
-        // A group is one drop of glass with ghost buttons standing in it, so
-        // each keeps its own round highlight rather than the theme joining
-        // them into a single bar
-        fieldGroup: 'horizontal',
-        variant: 'ghost',
-        class: 'rounded-full not-only:first:rounded-full not-only:last:rounded-full not-last:not-first:rounded-full'
       }]
     },
     checkbox: {
@@ -101,9 +100,6 @@ export default defineAppConfig({
           }
         }
       }
-    },
-    fieldGroup: {
-      base: glass
     },
     contextMenu: {
       slots: {
