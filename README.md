@@ -25,11 +25,11 @@ Apple Calendar-inspired application with day, week and month views, drag and dro
 - **Optimistic mutations** - Creations, edits and deletions apply instantly to a client overlay re-applied over every server response, with rollback and a toast on failure
 - **Offline support** - Mutations queue while offline and replay on reconnect thanks to upsert and idempotent server semantics, with an indicator in the header
 - **Payload caching** - Each visible range is a keyed `useFetch` with `getCachedData`, adjacent ranges are warmed in the background so a prev/next click never waits on the network
-- **View transitions** - `experimental.viewTransition` slides the grid left or right on prev/next navigation
+- **View transitions** - `experimental.viewTransition` slides the grid left or right on prev/next navigation, from the arrows or a swipe on touch screens
 - **Multiple calendars** - Color coding with cookie-persisted visibility toggles, plus a mini calendar with hover prefetching
 - **Shared contract** - The event types, the zod schema the Nitro routes validate against and the floating local datetime helper both sides write with all live in `shared/`, so client and server never disagree on what a date string means
 - **Keyboard shortcuts** - `t` for today, `d`/`w`/`m` to switch views, `n` for a new event, arrow keys to navigate
-- **Responsive layout** - Small screens show a 3-day window and the sidebar becomes a slideover, with controls sized up for touch
+- **Responsive layout** - Small screens show a 3-day window, the sidebar becomes a slideover and Today and `+` float in a toolbar at the bottom, with controls sized up for touch
 
 ## Quick Start
 

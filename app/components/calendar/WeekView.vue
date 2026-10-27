@@ -2,7 +2,7 @@
 import { breakpointsTailwind } from '@vueuse/core'
 import { differenceInCalendarDays, isSameDay, isToday, isWeekend } from 'date-fns'
 
-const { date, range } = useCalendar()
+const { date, range, go } = useCalendar()
 const { eventsForDay, eventsForDays, status } = useCalendarEvents()
 const { draftEvent, onGridPointerdown, onGridDblclick, registerHost } = useEventDraft()
 const { movingId, preview } = useEventMove()
@@ -96,12 +96,31 @@ const chromeOffset = computed(() => `calc(var(--ui-header-height) + 0.5rem + ${c
 // for a real scroll on the frame it hydrates. Scrolling on mount alone made
 // a reload paint the small hours first and then jump. The clamp mirrors what
 // the browser does to the scroll offset when the viewport (the scroller is
-// the full `h-svh` layout height) already fits the whole day
+// the full `h-svh` layout height) already fits the whole day, the clearance
+// for the phone toolbar below it included
 const START_OFFSET = 7 * HOUR_HEIGHT
 
-const startPull = computed(() => `calc(-1 * clamp(0px, ${START_OFFSET}px, ${24 * HOUR_HEIGHT}px + ${chromeOffset.value} - 100svh))`)
+const startPull = computed(() => `calc(-1 * clamp(0px, ${START_OFFSET}px, ${24 * HOUR_HEIGHT}px + ${chromeOffset.value} + var(--toolbar-clearance, 0px) - 100svh))`)
 
 const container = useTemplateRef('container')
+
+// A sideways swipe steps back or forward the way the arrows do, on the same
+// slide. A drag that is mostly vertical stays the scroll it is, and a draft on
+// the grid keeps the range it is being drawn in
+const { lengthX, lengthY } = useSwipe(() => container.value?.$el, {
+  threshold: 50,
+  onSwipeEnd(_event, direction) {
+    if (draftEvent.value || Math.abs(lengthX.value) < 2 * Math.abs(lengthY.value)) {
+      return
+    }
+
+    if (direction === 'left') {
+      go('right')
+    } else if (direction === 'right') {
+      go('left')
+    }
+  }
+})
 
 onMounted(async () => {
   // `mounted` drops the pull in this flush, the scroll has to land in the
@@ -126,11 +145,14 @@ onMounted(async () => {
     <UScrollArea
       ref="container"
       :style="{ scrollPaddingTop: chromeOffset }"
-      class="flex-1 z-0 snap-y snap-proximity [scrollbar-gutter:stable] [view-transition-name:calendar]"
+      class="flex-1 z-0 snap-y snap-proximity [scrollbar-gutter:stable] [view-transition-name:calendar] max-lg:[--toolbar-clearance:5rem] scroll-pb-(--toolbar-clearance)"
     >
+      <!-- Below `lg` the day runs on past the phone toolbar floating at the
+        bottom, so the last hour can scroll clear of it. The clearance is the
+        scroller's, so a draft scrolled into view stops above the toolbar too -->
       <div
         data-week-grid
-        class="grid"
+        class="grid pb-(--toolbar-clearance)"
         :style="{ ...gridStyle, paddingTop: chromeOffset, marginTop: mounted ? undefined : startPull }"
       >
         <div

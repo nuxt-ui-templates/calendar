@@ -178,5 +178,25 @@ function onViewChange(value: string | number) {
       <CalendarMonthView v-if="view === 'month'" />
       <CalendarWeekView v-else />
     </div>
+
+    <!-- The phone toolbar, down where the thumb is, the way iOS keeps Today
+      and its actions. Today stands in for the header one that has no room
+      below `sm`, and `+` for the sidebar one that is a menu away below `lg`.
+      These float over the grid itself, so they carry the blur the header
+      buttons borrow from the header -->
+    <div class="lg:hidden absolute inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 flex items-center justify-between pointer-events-none *:pointer-events-auto">
+      <UButton
+        label="Today"
+        color="neutral"
+        variant="soft"
+        size="sm"
+        class="sm:hidden glass-material"
+        :to="pathFor(todayDate())"
+      />
+
+      <div class="ms-auto">
+        <NewEventMenu floating />
+      </div>
+    </div>
   </div>
 </template>
