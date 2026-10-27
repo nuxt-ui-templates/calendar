@@ -134,10 +134,8 @@ function onViewChange(value: string | number) {
           />
         </UTooltip>
 
-        <!-- One drop of glass for the three of them, the way iOS groups the
-          actions of a toolbar -->
-        <UTheme :props="{ button: { color: 'neutral', variant: 'ghost', size: 'sm' } }">
-          <UFieldGroup>
+        <UTheme :props="{ button: { color: 'neutral', variant: 'subtle', size: 'sm' } }">
+          <div class="flex items-center gap-1">
             <UTooltip
               text="Previous"
               :kbds="['arrowleft']"
@@ -172,7 +170,7 @@ function onViewChange(value: string | number) {
                 @click="setDirection('right')"
               />
             </UTooltip>
-          </UFieldGroup>
+          </div>
         </UTheme>
       </div>
     </header>
