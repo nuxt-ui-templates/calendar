@@ -106,11 +106,17 @@ const container = useTemplateRef('container')
 
 // A sideways swipe steps back or forward the way the arrows do, on the same
 // slide. A drag that is mostly vertical stays the scroll it is, and a draft on
-// the grid keeps the range it is being drawn in
+// the grid keeps the range it is being drawn in. A finger on an event block is
+// dragging it to another day, which is no swipe either
+let onEvent = false
+
 const { lengthX, lengthY } = useSwipe(() => container.value?.$el, {
   threshold: 50,
+  onSwipeStart(event) {
+    onEvent = !!(event.target as Element).closest('[data-event]')
+  },
   onSwipeEnd(_event, direction) {
-    if (draftEvent.value || Math.abs(lengthX.value) < 2 * Math.abs(lengthY.value)) {
+    if (onEvent || draftEvent.value || Math.abs(lengthX.value) < 2 * Math.abs(lengthY.value)) {
       return
     }
 
