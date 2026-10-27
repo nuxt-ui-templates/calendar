@@ -91,18 +91,22 @@ function onViewChange(value: string | number) {
         </h1>
       </div>
 
-      <!-- Down to the initial below `md`, where the header cannot spare the
-        width for the labels. The triggers give up their padding for it, three
-        of them share 5rem there, 6rem on a touch screen where they stand as
-        tall as the buttons beside them -->
+      <!-- Down to the initial below `sm`, where the header cannot spare the
+        width for the labels, each in a 24px circle with the track hugging
+        them. On a touch screen the track pads out to stand as tall as the
+        buttons beside it -->
       <UTabs
         :items="views"
         :content="false"
         :model-value="view"
         color="neutral"
         size="sm"
-        class="mx-auto w-20 max-sm:pointer-coarse:w-24 sm:w-42 lg:w-48"
-        :ui="{ trigger: 'p-1 lg:p-1.5' }"
+        class="mx-auto sm:w-42 lg:w-48"
+        :ui="{
+          list: 'max-sm:pointer-coarse:p-2',
+          indicator: 'max-sm:pointer-coarse:inset-y-2',
+          trigger: 'p-1 lg:p-1.5 max-sm:size-6 max-sm:p-0 max-sm:grow-0 max-sm:justify-center'
+        }"
         @update:model-value="onViewChange"
       >
         <template #default="{ item }">
