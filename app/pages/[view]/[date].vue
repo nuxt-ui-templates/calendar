@@ -103,8 +103,8 @@ function onViewChange(value: string | number) {
         size="sm"
         class="mx-auto sm:w-42 lg:w-48"
         :ui="{
-          list: 'max-sm:pointer-coarse:p-2',
-          indicator: 'max-sm:pointer-coarse:inset-y-2',
+          list: 'max-sm:pointer-coarse:p-1.5',
+          indicator: 'max-sm:pointer-coarse:inset-y-1.5',
           trigger: 'p-1 lg:p-1.5 max-sm:size-6 max-sm:p-0 max-sm:grow-0 max-sm:justify-center'
         }"
         @update:model-value="onViewChange"
