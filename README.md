@@ -2,7 +2,7 @@
 
 [![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
 
-Apple Calendar-inspired application with day, week and month views, drag and drop, optimistic updates, offline support, keyboard shortcuts, light & dark mode and more. Built using [Nuxt UI](https://ui.nuxt.com) components on top of Nuxt's payload caching, route validation and view transitions.
+Apple Calendar-inspired application with day, week, month and year views, drag and drop, optimistic updates, offline support, keyboard shortcuts, light & dark mode and more. Built using [Nuxt UI](https://ui.nuxt.com) components on top of Nuxt's payload caching, route validation and view transitions.
 
 - [Live demo](https://calendar-template.nuxt.dev/)
 - [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
@@ -17,7 +17,7 @@ Apple Calendar-inspired application with day, week and month views, drag and dro
 
 ## Features
 
-- **Day, week and month views** - Date-based routing (`/day/2026-08-11`, `/week/2026-08-11`, `/month/2026-08-11`) with `definePageMeta({ validate })` turning invalid views or dates into a 404
+- **Day, week, month and year views** - Date-based routing (`/day/2026-08-11`, `/week/2026-08-11`, `/month/2026-08-11`, `/year/2026-08-11`) with `definePageMeta({ validate })` turning invalid views or dates into a 404
 - **Infinite month scrolling** - Virtualized with the [`ScrollArea`](https://ui.nuxt.com/docs/components/scroll-area) component, streaming events in aligned 6-week chunks while the URL and title follow as you scroll
 - **Drag and drop** - Move events across days, drag the bottom edge to resize, snapped to 15 minutes
 - **Inline event editing** - Double-click or drag the grid to draw an event where you point, across days for an all-day one, then fill it in from a popover anchored to it, the same form an existing event opens into
@@ -28,7 +28,7 @@ Apple Calendar-inspired application with day, week and month views, drag and dro
 - **View transitions** - `experimental.viewTransition` slides the grid left or right on prev/next navigation, from the arrows or a swipe on touch screens
 - **Multiple calendars** - Color coding with cookie-persisted visibility toggles, plus a mini calendar with hover prefetching
 - **Shared contract** - The event types, the zod schema the Nitro routes validate against and the floating local datetime helper both sides write with all live in `shared/`, so client and server never disagree on what a date string means
-- **Keyboard shortcuts** - `t` for today, `d`/`w`/`m` to switch views, `n` for a new event, arrow keys to navigate
+- **Keyboard shortcuts** - `t` for today, `d`/`w`/`m`/`y` to switch views, `n` for a new event, arrow keys to navigate
 - **Responsive layout** - Small screens show a 3-day window, the sidebar becomes a slideover and Today and `+` float in a toolbar at the bottom, with controls sized up for touch
 
 ## Quick Start

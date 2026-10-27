@@ -35,8 +35,11 @@ const DEFAULT_HOUR = 9
 export const DEFAULT_TITLE = 'New Event'
 
 const _useEventDraft = () => {
-  const { date, pathFor } = useCalendar()
+  const { view, date, pathFor } = useCalendar()
   const { calendars, hiddenCalendars, addEvent } = useCalendarEvents()
+
+  // The year view has no grid to draw on, the month it zooms into does
+  const gridView = computed(() => view.value === 'year' ? 'month' : view.value)
 
   const draft = shallowRef<EventDraft | null>(null)
   // The pointer is still down: the ghost is being drawn and the popover waits
@@ -143,7 +146,7 @@ const _useEventDraft = () => {
   async function createAtAnchor(title = '') {
     // Nowhere to draw here, so land on a grid first
     if (!hosts.value) {
-      await navigateTo(pathFor(date.value))
+      await navigateTo(pathFor(date.value, gridView.value))
     }
 
     // `getHours() + 1` alone rolls a draft started at 23:xx into the next day
@@ -165,7 +168,7 @@ const _useEventDraft = () => {
       return createAtAnchor(text)
     }
 
-    await navigateTo(pathFor(toCalendarDate(quick.start)))
+    await navigateTo(pathFor(toCalendarDate(quick.start), gridView.value))
 
     createDraft({ ...quick, scroll: true })
   }

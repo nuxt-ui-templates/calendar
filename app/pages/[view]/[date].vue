@@ -7,7 +7,7 @@ definePageMeta({
   // remount the page (and reset the month view scroll) on every URL sync
   key: route => route.params.view as string,
   validate(route) {
-    if (!['day', 'week', 'month'].includes(route.params.view as string)) {
+    if (!['day', 'week', 'month', 'year'].includes(route.params.view as string)) {
       return false
     }
 
@@ -33,8 +33,14 @@ const { online, queue } = useCalendarEvents()
 const views = [
   { label: 'Day', value: 'day' },
   { label: 'Week', value: 'week' },
-  { label: 'Month', value: 'month' }
+  { label: 'Month', value: 'month' },
+  { label: 'Year', value: 'year' }
 ] satisfies TabsItem[]
+
+// The room the title has, handed to the month labels that dock on it so they
+// cut off where it does rather than running under the switcher
+const heading = useTemplateRef('heading')
+const { width: headingWidth } = useElementSize(heading)
 
 function onViewChange(value: string | number) {
   navigateTo(pathFor(date.value, value as CalendarView))
@@ -44,6 +50,7 @@ function onViewChange(value: string | number) {
 <template>
   <div
     class="relative flex-1 flex flex-col overflow-hidden -z-1"
+    :style="headingWidth ? { '--heading-width': `${headingWidth}px` } : undefined"
   >
     <!-- Floating over the views so their content scrolls behind the blur, its
       own view transition name keeps it above the sliding grid snapshot (which
@@ -83,6 +90,7 @@ function onViewChange(value: string | number) {
           before the leaving one starts out, always opaque under a partly
           transparent copy of itself -->
         <h1
+          ref="heading"
           class="flex items-baseline gap-1.5 text-xl sm:text-2xl tracking-tight min-w-0 flex-1 transition-opacity duration-0"
           :class="view === 'month' && monthLabelsVisible ? 'opacity-0 delay-150' : 'opacity-100'"
         >
@@ -101,7 +109,7 @@ function onViewChange(value: string | number) {
         :model-value="view"
         color="neutral"
         size="sm"
-        class="mx-auto sm:w-42 lg:w-48"
+        class="mx-auto sm:w-52 sm:pointer-coarse:w-56 lg:w-60"
         :ui="{
           list: 'max-sm:pointer-coarse:p-1.5',
           indicator: 'max-sm:pointer-coarse:inset-y-1.5',
@@ -176,6 +184,7 @@ function onViewChange(value: string | number) {
       painting above the translucent header -->
     <div class="flex-1 flex flex-col min-h-0">
       <CalendarMonthView v-if="view === 'month'" />
+      <CalendarYearView v-else-if="view === 'year'" />
       <CalendarWeekView v-else />
     </div>
 

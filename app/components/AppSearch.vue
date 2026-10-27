@@ -8,7 +8,8 @@ const { events, calendars, hiddenCalendars, toggleCalendar } = useCalendarEvents
 const views = [
   { label: 'Day', value: 'day', icon: 'i-lucide-calendar-range', kbd: 'd' },
   { label: 'Week', value: 'week', icon: 'i-lucide-calendar-days', kbd: 'w' },
-  { label: 'Month', value: 'month', icon: 'i-lucide-calendar', kbd: 'm' }
+  { label: 'Month', value: 'month', icon: 'i-lucide-calendar', kbd: 'm' },
+  { label: 'Year', value: 'year', icon: 'i-lucide-calendar-fold', kbd: 'y' }
 ] as const
 
 const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
@@ -59,7 +60,8 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
     label: event.title,
     suffix: formatFullDate(new Date(event.start)),
     chip: { color: calendars.value.find(calendar => calendar.id === event.calendarId)?.color },
-    onSelect: () => navigateTo(pathFor(toCalendarDate(new Date(event.start))))
+    // The year view draws no events, so one picked from there opens on its day
+    onSelect: () => navigateTo(pathFor(toCalendarDate(new Date(event.start)), view.value === 'year' ? 'day' : view.value))
   }))
 }])
 </script>

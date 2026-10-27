@@ -95,7 +95,9 @@ export function monthFetchRange(date: CalendarDate): DateRange {
 }
 
 export function rangeFor(view: CalendarView, date: CalendarDate): DateRange {
-  if (view === 'month') {
+  // The year view draws no events, so it fetches the month it was opened on,
+  // which then opens warm when it zooms back in
+  if (view === 'month' || view === 'year') {
     return monthFetchRange(date)
   }
 
