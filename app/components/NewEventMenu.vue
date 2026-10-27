@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// Floating, it is the phone toolbar's button down in the corner, a size up and
-// opening upwards from there
+// Floating, it is the phone toolbar's button down in the corner, opening
+// upwards from there
 const props = defineProps<{
   floating?: boolean
 }>()
@@ -65,14 +65,10 @@ async function onSubmit() {
     :ui="{ content: 'p-2 w-72 max-w-[calc(100vw-1rem)]' }"
   >
     <UTooltip text="New event">
-      <!-- Floating, a 44px drop with the header's icon size, out of reach of
-        the touch sizes the app config gives `sm` -->
       <UButton
         icon="i-lucide-plus"
-        :size="floating ? 'xl' : 'sm'"
+        size="sm"
         aria-label="New event"
-        :class="floating && 'p-3'"
-        :ui="floating ? { leadingIcon: 'size-5' } : undefined"
       />
     </UTooltip>
 

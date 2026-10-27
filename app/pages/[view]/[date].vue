@@ -198,8 +198,8 @@ function onViewChange(value: string | number) {
         label="Today"
         color="neutral"
         variant="soft"
-        size="xl"
-        class="sm:hidden px-4 py-2.5 glass-material"
+        size="sm"
+        class="sm:hidden glass-material"
         :to="pathFor(todayDate())"
       />
 
