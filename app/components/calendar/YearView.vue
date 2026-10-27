@@ -79,6 +79,7 @@ onMounted(() => {
               v-if="inMonth"
               :to="pathFor(toCalendarDate(day), 'day')"
               :prefetch="false"
+              :aria-label="formatFullDate(day)"
               class="inline-flex items-center justify-center w-full max-w-4 aspect-square sm:size-6 sm:max-w-none text-[9px] sm:text-xs tabular-nums rounded-full transition-colors focus-visible:outline-3"
               :class="isToday(day)
                 ? 'font-semibold text-inverted bg-primary active:bg-primary/75 outline-primary/25'

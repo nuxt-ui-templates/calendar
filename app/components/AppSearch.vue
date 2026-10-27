@@ -60,7 +60,8 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
     label: event.title,
     suffix: formatFullDate(new Date(event.start)),
     chip: { color: calendars.value.find(calendar => calendar.id === event.calendarId)?.color },
-    onSelect: () => navigateTo(pathFor(toCalendarDate(new Date(event.start))))
+    // The year view draws no events, so one picked from there opens on its day
+    onSelect: () => navigateTo(pathFor(toCalendarDate(new Date(event.start)), view.value === 'year' ? 'day' : view.value))
   }))
 }])
 </script>
