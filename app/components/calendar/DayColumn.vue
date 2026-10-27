@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isSameDay, isToday } from 'date-fns'
+import { isSameDay, isToday, isWeekend } from 'date-fns'
 
 // Placeholder blocks shown while a range loads, as [start hour, hours]
 const SKELETONS = [[9, 1.5], [13, 1], [16, 2]] as const
@@ -32,6 +32,7 @@ function anchored(event: CalendarEvent): boolean {
     data-day-column
     :data-date="isoDate(day)"
     class="relative border-s border-default snap-start"
+    :class="isWeekend(day) && 'bg-(--weekend-bg)'"
     :style="{ height: `${24 * HOUR_HEIGHT}px` }"
     @pointerdown="onGridPointerdown($event, { kind: 'timed', day })"
     @dblclick="onGridDblclick($event, { kind: 'timed', day })"

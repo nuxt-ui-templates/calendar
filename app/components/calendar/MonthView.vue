@@ -418,7 +418,7 @@ onUnmounted(() => {
         v-for="(weekday, index) in weekdays"
         :key="weekday"
         class="flex items-center justify-end pe-2 text-sm text-muted border-default"
-        :class="index !== 0 && 'border-s'"
+        :class="[index !== 0 && 'border-s', index >= 5 && 'bg-(--weekend-bg)']"
       >
         {{ weekday }}
       </span>

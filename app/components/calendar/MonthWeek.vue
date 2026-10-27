@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { addDays, isSameDay, isToday } from 'date-fns'
+import { addDays, isSameDay, isToday, isWeekend } from 'date-fns'
 
 // A week is one grid: the day numbers, then a fixed stack of slots each day
 // fills on its own. All-day bars span columns and hold their lane across the
@@ -14,7 +14,7 @@ const props = defineProps<{
   weekStart: Date
 }>()
 
-const { pathFor } = useCalendar()
+const { date, visibleMonth, pathFor } = useCalendar()
 const { eventsForDay, eventsForDays, pendingRanges } = useCalendarEvents()
 const { draftEvent, onGridPointerdown, onGridDblclick } = useEventDraft()
 const { movingId, preview } = useEventMove()
@@ -153,6 +153,22 @@ const loading = computed(() => Object.values(pendingRanges.value).some(range => 
   && !bars.value.length
   && cells.value.every(cell => !cell.events.length && !cell.more))
 
+// The month the scroll has docked reads at full strength and the days around
+// it fall back, the way macOS greys the edges of a month. It follows the dock,
+// so a row changes over as the next month scrolls up into place
+const focus = computed(() => visibleMonth.value ?? date.value)
+
+function inFocus(day: Date): boolean {
+  return day.getMonth() + 1 === focus.value.month && day.getFullYear() === focus.value.year
+}
+
+// The line between two months is drawn stronger, under every day whose next
+// week is in the other month and beside the 1st, so it steps around the 1st
+// the way iOS breaks its continuous grid. A row only has to look one week down
+function endsMonth(day: Date): boolean {
+  return addDays(day, 7).getMonth() !== day.getMonth()
+}
+
 function label(day: Date): string {
   if (day.getDate() === 1) {
     return `${formatShortMonth(day)} 1`
@@ -164,18 +180,24 @@ function label(day: Date): string {
 
 <template>
   <div
-    class="grid grid-cols-7 min-w-0 border-b border-default"
+    class="grid grid-cols-7 min-w-0"
     :style="gridStyle"
   >
     <!-- Column separators, behind everything so a gesture on empty space
       anywhere in the day lands here. They carry the day a drag reads back off
-      them, which is what lets it run into the rows below -->
+      them, which is what lets it run into the rows below. They draw the row's
+      bottom line too, so it can change strength from one day to the next -->
     <div
       v-for="({ day }, index) in cells"
       :key="`day-${day.getTime()}`"
       :data-date="isoDate(day)"
-      class="row-span-full border-default"
-      :class="index !== 0 && 'border-s'"
+      class="row-span-full border-b border-default"
+      :class="[
+        index !== 0 && 'border-s',
+        index !== 0 && day.getDate() === 1 && 'border-s-accented',
+        endsMonth(day) && 'border-b-accented',
+        isWeekend(day) && 'bg-(--weekend-bg)'
+      ]"
       :style="{ gridColumn: index + 1 }"
       @pointerdown="onGridPointerdown($event, { kind: 'month', day })"
       @dblclick="onGridDblclick($event, { kind: 'month', day })"
@@ -192,7 +214,7 @@ function label(day: Date): string {
       class="select-none row-start-1 justify-self-end inline-flex items-center justify-center h-6 min-w-6 m-0.5 px-1 py-1 text-xs pointer-coarse:h-8 pointer-coarse:min-w-8 pointer-coarse:text-sm font-semibold rounded-full transition-colors focus-visible:outline-3"
       :class="isToday(day)
         ? 'text-inverted bg-primary active:bg-primary/75 outline-primary/25'
-        : 'text-default hover:bg-(--control-bg) active:bg-(--control-bg) outline-inverted/25'"
+        : [inFocus(day) ? 'text-default' : 'text-dimmed', 'hover:bg-(--control-bg) active:bg-(--control-bg) outline-inverted/25']"
       :style="{ gridColumn: index + 1 }"
     >
       {{ label(day) }}
@@ -225,7 +247,7 @@ function label(day: Date): string {
         :event="event"
         :anchored="!continuesBefore"
         class="self-start mx-0.5"
-        :class="[continuesBefore && 'rounded-s-none', continuesAfter && 'rounded-e-none']"
+        :class="[continuesBefore && 'rounded-s-none max-sm:rounded-s-none', continuesAfter && 'rounded-e-none max-sm:rounded-e-none']"
         :style="{ gridColumn: `${colStart + 1} / span ${colSpan}`, gridRow: lane + 2 }"
       />
     </template>
