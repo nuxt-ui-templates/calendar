@@ -438,7 +438,7 @@ onUnmounted(() => {
       <div
         v-for="label in labels"
         :key="label.key"
-        class="absolute top-0 inset-s-13 max-lg:pointer-coarse:inset-s-16 lg:inset-s-4 flex items-center gap-1.5 h-8 text-xl sm:text-2xl tracking-tight will-change-[translate]"
+        class="absolute top-0 inset-s-13 max-lg:pointer-coarse:inset-s-15 lg:inset-s-4 flex items-center gap-1.5 h-8 text-xl sm:text-2xl tracking-tight will-change-[translate]"
         :style="{ translate: `0 ${label.y}px` }"
       >
         <span class="font-bold text-highlighted">{{ label.month }}</span>
