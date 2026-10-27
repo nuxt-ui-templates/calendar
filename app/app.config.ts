@@ -51,21 +51,21 @@ export default defineAppConfig({
         variant: 'solid',
         class: 'rounded-full glass-control'
       }, {
-        // Up to 40px on a touch screen, a size a finger can land on
+        // Up to 36px on a touch screen, a size a finger can land on
         size: ['sm', 'md'],
         square: true,
         class: {
-          base: 'pointer-coarse:p-2.5',
+          base: 'pointer-coarse:p-2',
           leadingIcon: 'pointer-coarse:size-5'
         }
       }, {
         size: 'sm',
         square: false,
-        class: 'pointer-coarse:py-2.5 pointer-coarse:text-sm'
+        class: 'pointer-coarse:py-2 pointer-coarse:text-sm'
       }, {
         size: 'md',
         square: false,
-        class: 'pointer-coarse:py-2.5'
+        class: 'pointer-coarse:py-2'
       }]
     },
     checkbox: {
@@ -299,7 +299,7 @@ export default defineAppConfig({
         // As tall as the buttons beside it on a touch screen
         size: 'sm',
         class: {
-          trigger: 'pointer-coarse:py-1.5 pointer-coarse:text-sm'
+          trigger: 'pointer-coarse:py-1 pointer-coarse:text-sm'
         }
       }]
     }
