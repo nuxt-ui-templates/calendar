@@ -14,6 +14,10 @@ const divide = 'divide-black/8 dark:divide-white/8'
 // so it carries a blur of its own instead of the material's, and reads it from
 // a variable so turning transparency down clears it along with everything else
 const overlay = 'backdrop-blur-(--overlay-blur) bg-(--glass-bg)'
+// A control floating on the chrome as its own drop of glass, the way the iOS
+// toolbar draws them. `glass-control` carries the light and the shadow apart
+// from the fill, so a hover can still change the fill through a color utility
+const glass = 'rounded-full bg-(--glass-control-bg) glass-control'
 
 export default defineAppConfig({
   ui: {
@@ -29,11 +33,39 @@ export default defineAppConfig({
       }, {
         color: 'neutral',
         variant: 'soft',
-        class: 'bg-(--control-bg) hover:bg-(--control-bg-hover) active:bg-(--control-bg-hover) disabled:bg-(--control-bg) aria-disabled:bg-(--control-bg)'
+        class: `${glass} hover:bg-(--glass-control-bg-hover) active:bg-(--glass-control-bg-hover) disabled:bg-(--glass-control-bg) aria-disabled:bg-(--glass-control-bg)`
+      }, {
+        // A control painted on the chrome rather than floating over it, the
+        // flat pill the macOS toolbar draws its date stepper with
+        color: 'neutral',
+        variant: 'subtle',
+        class: 'rounded-full ring-0 bg-(--control-bg) hover:bg-(--control-bg-hover) active:bg-(--control-bg-hover) disabled:bg-(--control-bg) aria-disabled:bg-(--control-bg)'
       }, {
         color: 'neutral',
         variant: 'ghost',
         class: 'hover:bg-(--control-bg) active:bg-(--control-bg)'
+      }, {
+        // Glass tinted with the accent, lit and shadowed like the neutral drops
+        // beside it
+        color: 'primary',
+        variant: 'solid',
+        class: 'rounded-full glass-control'
+      }, {
+        // Up to 36px on a touch screen, a size a finger can land on
+        size: ['sm', 'md'],
+        square: true,
+        class: {
+          base: 'pointer-coarse:p-2',
+          leadingIcon: 'pointer-coarse:size-5'
+        }
+      }, {
+        size: 'sm',
+        square: false,
+        class: 'pointer-coarse:py-2 pointer-coarse:text-sm'
+      }, {
+        size: 'md',
+        square: false,
+        class: 'pointer-coarse:py-2'
       }]
     },
     checkbox: {
@@ -236,11 +268,10 @@ export default defineAppConfig({
       variants: {
         // Same path as the theme's own pill classes, or `rounded-lg` and
         // `rounded-md` would come later in the merge and win. The track is a
-        // well cut into the chrome it sits on, so the indicator riding in it
-        // reads as raised rather than sunk
+        // drop of glass like the buttons beside it
         variant: {
           pill: {
-            list: ['rounded-full gap-0.5 bg-(--well-bg)', ring],
+            list: `gap-0.5 ${glass}`,
             indicator: 'rounded-full'
           }
         }
@@ -263,6 +294,12 @@ export default defineAppConfig({
             'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-(--control-bg)',
             'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:rounded-full'
           ]
+        }
+      }, {
+        // As tall as the buttons beside it on a touch screen
+        size: 'sm',
+        class: {
+          trigger: 'pointer-coarse:py-1 pointer-coarse:text-sm'
         }
       }]
     }

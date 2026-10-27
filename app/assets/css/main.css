@@ -60,10 +60,12 @@
   --control-bg: rgb(0 0 0 / 0.05);
   --control-bg-hover: rgb(0 0 0 / 0.09);
 
-  /* A well cut into the glass, for a track the controls in it read as raised
-     out of. Black in both modes, where `--control-bg` turns white on dark
-     glass and matches this on light */
-  --well-bg: rgb(0 0 0 / 0.05);
+  /* A control floating on the chrome as its own drop of glass, the way the
+     iOS toolbar draws them. Lit along its top edge and set off by a soft
+     shadow, so it reads as raised where `--control-bg` reads as painted on */
+  --glass-control-bg: rgb(255 255 255 / 0.6);
+  --glass-control-bg-hover: rgb(255 255 255 / 0.85);
+  --glass-control-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -1px 0 rgb(0 0 0 / 0.03), 0 0 0 0.5px rgb(0 0 0 / 0.06), 0 2px 10px rgb(0 0 0 / 0.08);
 }
 
 .dark {
@@ -75,9 +77,9 @@
   --control-bg: rgb(255 255 255 / 0.06);
   --control-bg-hover: rgb(255 255 255 / 0.10);
 
-  /* Deeper than the light one: the pane behind it is already dark, so the
-     same alpha would not read as a well at all */
-  --well-bg: rgb(0 0 0 / 0.22);
+  --glass-control-bg: rgb(255 255 255 / 0.08);
+  --glass-control-bg-hover: rgb(255 255 255 / 0.14);
+  --glass-control-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), inset 0 0 0 0.5px rgb(255 255 255 / 0.08), 0 4px 16px rgb(0 0 0 / 0.4);
 }
 
 /* Frosted over to fully solid */
@@ -87,6 +89,8 @@
     --glass-bg: var(--ui-bg);
     --glass-blur: 0px;
     --overlay-blur: 0px;
+    --glass-control-bg: var(--ui-bg-elevated);
+    --glass-control-bg-hover: var(--ui-bg-accented);
   }
 }
 
@@ -95,6 +99,12 @@
 @utility glass-material {
   -webkit-backdrop-filter: var(--glass-filter);
   backdrop-filter: var(--glass-filter);
+}
+
+/* The light and shadow of `--glass-control-bg`, apart from the fill so the
+   fill can still change on hover through a color utility */
+@utility glass-control {
+  box-shadow: var(--glass-control-shadow);
 }
 
 /* Slide the calendar grid on prev/next navigation, driven by the

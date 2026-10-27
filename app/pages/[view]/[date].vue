@@ -61,14 +61,16 @@ function onViewChange(value: string | number) {
         same spot at every width the menu button shows at and the month view
         has a single offset to dock its labels on -->
       <div class="flex items-center gap-2 min-w-0 flex-1">
-        <!-- Below `lg` the sidebar is a slideover, this is what opens it -->
+        <!-- Below `lg` the sidebar is a slideover, this is what opens it. It
+          grows a size on a touch screen, and the month labels dock past it at
+          that width too -->
         <UButton
           icon="i-lucide-menu"
           color="neutral"
           variant="soft"
           size="sm"
           aria-label="Open menu"
-          class="lg:hidden shrink-0 rounded-full"
+          class="lg:hidden shrink-0"
           @click="isSidebarOpen = true"
         />
 
@@ -89,17 +91,22 @@ function onViewChange(value: string | number) {
         </h1>
       </div>
 
-      <!-- Down to the initial below `md`, where the header cannot spare the
-        width for the labels. The triggers give up their padding for it, three
-        of them share 5rem there -->
+      <!-- Down to the initial below `sm`, where the header cannot spare the
+        width for the labels, each in a 24px circle with the track hugging
+        them. On a touch screen the track pads out to stand as tall as the
+        buttons beside it -->
       <UTabs
         :items="views"
         :content="false"
         :model-value="view"
         color="neutral"
         size="sm"
-        class="mx-auto w-20 sm:w-42 lg:w-48"
-        :ui="{ trigger: 'p-1 lg:p-1.5' }"
+        class="mx-auto sm:w-42 lg:w-48"
+        :ui="{
+          list: 'max-sm:pointer-coarse:p-1.5',
+          indicator: 'max-sm:pointer-coarse:inset-y-1.5',
+          trigger: 'p-1 lg:p-1.5 max-sm:size-6 max-sm:p-0 max-sm:grow-0 max-sm:justify-center'
+        }"
         @update:model-value="onViewChange"
       >
         <template #default="{ item }">
@@ -123,7 +130,7 @@ function onViewChange(value: string | number) {
           />
         </UTooltip>
 
-        <UTheme :props="{ button: { color: 'neutral', variant: 'soft', size: 'sm', class: 'rounded-full' } }">
+        <UTheme :props="{ button: { color: 'neutral', variant: 'subtle', size: 'sm' } }">
           <div class="flex items-center gap-1">
             <UTooltip
               text="Previous"
@@ -143,7 +150,7 @@ function onViewChange(value: string | number) {
             >
               <UButton
                 label="Today"
-                class="hidden sm:inline-flex rounded-full"
+                class="hidden sm:inline-flex"
                 :to="pathFor(todayDate())"
               />
             </UTooltip>
