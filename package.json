@@ -19,7 +19,7 @@
     "@vueuse/nuxt": "^14.4.0",
     "date-fns": "^4.4.0",
     "gpu-time": "^0.5.0",
-    "nuxt": "^4.6.4",
+    "nuxt": "^4.7.0",
     "tailwindcss": "^4.3.5",
     "zod": "^4.6.7"
   },
